@@ -58,4 +58,4 @@ class Compass:
         six_values = self.bus.read_i2c_block_data(
             Compass.DEVICE_ADDRESS, Compass.OUT_X_L, 6)
         x, y, z = convert(six_values)
-        return x, y, z
+        return np.array([[x], [y], [z]])
