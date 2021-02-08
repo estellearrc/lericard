@@ -1,0 +1,23 @@
+----- States
+Idle
+Menu
+Triangle
+End
+----- Transitions
+Idle Idle wait main.doWait
+Idle Menu go main.doMainMenu
+Menu Idle wait main.doWait
+Menu Triangle triangle main.doTriangle
+Menu End stop main.doStop
+Triangle Idle wait main.doWait
+----- Events
+wait
+go
+triangle
+stop
+---- Start State
+Idle
+---- Start Event
+go
+---- End State
+End
