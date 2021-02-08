@@ -50,10 +50,10 @@ class Boat:
             self.motors.command(u_left, u_right)
 
     def reach_point(self, point):
-        """Return if a certain point has been reached
+        """Return false when a certain point has been reached
         point is a 2d-array"""
         xy_tilde = self.gps.read_cart_coord()
-        return norm(point-xy_tilde) <= 5  # 5m of accuracy
+        return norm(point-xy_tilde) >= 1 
 
     def compute_heading(self, target_point):
         """ Return heading to go to target point

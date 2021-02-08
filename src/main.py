@@ -55,14 +55,13 @@ def doFollowHeading():
     global remaining_points
     if len(remaining_points) > 0:
         x_target, y_target = remaining_points.pop(0)
+        target_heading = np.array([[x_target], [y_target]])
         print("Going to point x=", x_target, " y=", y_target)
-        boat.follow_heading(boat. "", 80, 120, boat.reach_point, np.array([[x_target], [y_target]]))
+        boat.follow_heading(boat.compute_heading(target_point), 80, 120, boat.reach_point, target_heading)
         event = "go"
     else:
         print("End of the triangle ...")
         event = "stop"
-    print("oui")
-
     return event
 
 
@@ -90,6 +89,7 @@ if __name__ == "__main__":
             funct()
             run = False
         except:
-            print("Going home")
+            print("I'm coming home bitches!")
+            boat.back_to_home()
 else:
     boat = Boat.Boat()
