@@ -51,7 +51,7 @@ class Compass:
         A matrix
         b bias"""
         self.b = -1/2*(x1 + x_1)
-        beta = 46000
+        beta = 4600
         y1 = 1/beta*(x1+self.b)
         y2 = 1/beta*(x2 + self.b)
         y3 = 1/beta*(x3 + self.b)
@@ -65,7 +65,9 @@ class Compass:
         six_values = self.bus.read_i2c_block_data(
             Compass.DEVICE_ADDRESS, Compass.OUT_X_L, 6)
         x, y, z = convert(six_values)
-        return np.array([[x], [y], [z]])
+        X = np.array([[x], [y], [z]])
+        B = np.linalg.inv(self.A)@(X + self.b)
+        return B
 
 
 def test():

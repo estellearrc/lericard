@@ -1,8 +1,9 @@
 import time
 import fsm
-import time
+import numpy as np
 import sys
 import Boat
+
 
 remaining_points = []
 
@@ -44,20 +45,21 @@ def doTriangleInitialize():
     y_2 = -3.016188
     x_3 = 48.200187
     y_3 = -3.015764
-    print("A : x=",x_1," y=",y_1)
-    print("B : x=",x_2," y=",y_2)
-    print("C : x=",x_3," y=",y_3)
+    print("A : x=", x_1, " y=", y_1)
+    print("B : x=", x_2, " y=", y_2)
+    print("C : x=", x_3, " y=", y_3)
     remaining_points = [(x_1, y_1), (x_2, y_2), (x_3, y_3), (x_1, y_1)]
     return "go"
-    
-    
+
+
 def doFollowHeading():
     global remaining_points
     if len(remaining_points) > 0:
         x_target, y_target = remaining_points.pop(0)
-        target_heading = np.array([[x_target], [y_target]])
+        target_point = np.array([[x_target], [y_target]])
         print("Going to point x=", x_target, " y=", y_target)
-        boat.follow_heading(boat.compute_heading(target_point), 80, 120, boat.reach_point, target_heading)
+        boat.follow_heading(boat.compute_heading(
+            target_point), 80, 120, boat.reach_point, target_point)
         event = "go"
     else:
         print("End of the triangle ...")
@@ -77,19 +79,21 @@ if __name__ == "__main__":
     f.load_fsm_from_file("fsm_boat_cmd.txt")
     run = True
     while run:
-        try:
-            funct = f.run()
-            if f.curState != f.endState:
+        # try:
+        funct = f.run()
+        if f.curState != f.endState:
             newEvent = funct()
             if newEvent is None:
                 break
             else:
                 f.set_event(newEvent)
-            else:
+        else:
             funct()
             run = False
-        except:
-            print("I'm coming home bitches!")
-            boat.back_to_home()
+        # except:
+        #     print("I'm coming home bitches!")
+        #     boat = Boat.Boat()
+        #     boat.back_to_home()
+        #     boat.stop()
 else:
     boat = Boat.Boat()

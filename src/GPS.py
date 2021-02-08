@@ -21,8 +21,8 @@ class GPS:
 
     def read_cart_coord(self):
         data_array = self.read_sensor_values()
-        lx = data_array[2]  # North / longitude
-        ly = data_array[4]  # West / latitude
+        lx = data_array[0]  # North / longitude
+        ly = data_array[2]  # West / latitude
         x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
         y_tilde = GPS.rho*(ly-GPS.ly0)
         return np.array([[x_tilde], [y_tilde]])
@@ -33,9 +33,9 @@ def test():
     gps = GPS()
     while True:
         data = gps.read_sensor_values()
-        print("[long, lat] = [%f, %f]", data[2], data[4])
+        print("[long, lat] = [{}, {}]".format(data[0], data[2]))
         data = gps.read_cart_coord()
-        print("[xtilde, ytilde] = [%f, %f]", data[0, 0], data[1, 0])
+        print("[xtilde, ytilde] = [{}, {}]".format(data[0, 0], data[1, 0]))
         time.sleep(1)
 
 

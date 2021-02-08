@@ -4,6 +4,7 @@ from Compass import *
 from Motors import *
 from GPS import *
 import smbus
+import time
 
 
 def sawtooth(x):
@@ -20,10 +21,10 @@ class Boat:
         # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
         self.bus = smbus.SMBus(1)
         # Calibrage de la boussole
-        x1 = np.array([[864.02], [-4670.3], [5298.5]])
-        x_1 = np.array([[7030.86], [-4034.02], [4805.73]])
-        x2 = np.array([[4137.86], [-7385.4], [5082.37]])
-        x3 = np.array([[4066.86], [-4540.8], [1934.98]])
+        x1 = np.array([[-2388], [-1892], [1668]])
+        x_1 = np.array([[2870], [-2650], [1404]])
+        x2 = np.array([[-50], [-5430], [3447]])
+        x3 = np.array([[300], [-2020], [6780]])
         self.compass = Compass(self.bus, x1, x_1, x2, x3)
         self.motors = Motors()
         self.gps = GPS()
@@ -53,7 +54,7 @@ class Boat:
         """Return false when a certain point has been reached
         point is a 2d-array"""
         xy_tilde = self.gps.read_cart_coord()
-        return norm(point-xy_tilde) >= 1 
+        return norm(point-xy_tilde) >= 1
 
     def compute_heading(self, target_point):
         """ Return heading to go to target point
@@ -66,3 +67,15 @@ class Boat:
         home = np.array([[Boat.lx_home], [Boat.ly_home]])
         heading = self.compute_heading(home)
         self.follow_heading(heading, 80, 120, self.reach_point, home)
+
+
+def test():
+    """ Retrieve earth magnetic field"""
+    b = Boat()
+    while True:
+        print(b.compass.read_sensor_values())
+        time.sleep(1)
+
+
+if __name__ == "__main__":
+    test()
