@@ -11,6 +11,7 @@ class GPS:
     ly0 = -3.01473333
 
     def __init__(self):
+        self.range = 5
         self.gps_com = gpsdrv.init_line()
 
     def read_sensor_values(self):

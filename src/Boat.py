@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg import norm
+from numpy.linalg import norm, det, sign
 from Compass import *
 from Motors import *
 from GPS import *
@@ -49,6 +49,24 @@ class Boat:
             u_left = int(0.5*v*(1 + Boat.k*e))
             u_right = int(0.5*v*(1 - Boat.k*e))
             self.motors.command(u_left, u_right)
+
+    def follow_line(self, pointA, pointB):
+        x = self.gps.read_cart_coord()
+        x = x.flatten()
+        mag_field = self.compass.read_sensor_values()
+        # boat's actual heading
+        theta = np.arctan2(mag_field[1, 0], mag_field[0, 0])
+        m = np.array([[x[0]], [x[1]]])  # position GPS (x,y)
+        # erreur à la ligne de suivi
+        e = det(np.hstack(((pointB-pointA)/norm(pointA-pointB), m-pointA)))
+        # cap de la ligne à suivre
+        phi = np.arctan2(pointB[1, 0]-pointA[1, 0], pointB[0, 0]-pointA[0, 0])
+        # si le voilier est en dehors du couloir de manoeuvre, on le fait virer de bord.
+        if abs(e) > self.gps.range:
+            q = sign(e)
+        # Sinon, on laisse les 2 directions possibles pour que le voilier puisse remonter les bords
+        # cap désiré en fonction de l'erreur
+        theta_bar = phi - np.arctan2(e, self.gps.range)
 
     def reach_point(self, point):
         """Return false when a certain point has been reached
