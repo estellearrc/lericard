@@ -7,7 +7,7 @@ End
 Idle Idle wait main.doWait
 Idle Menu go main.doMainMenu
 Menu Idle wait main.doWait
-Menu Triangle triangle main.doTriangle
+Menu Triangle triangle main.doTriangleInitialize
 Menu End stop main.doStop
 Triangle Idle wait main.doWait
 ----- Events

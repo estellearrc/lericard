@@ -2,6 +2,9 @@ import time
 import fsm
 import time
 import sys
+import Boat
+
+triangle_remaining_points = []
 
 
 def doWait():
@@ -11,6 +14,7 @@ def doWait():
     
 
 def doMainMenu():
+    global triangle_remaining_points = 0
     print(" Do a triangle [1] \n Leave [2]")
     a = input()
     try:
@@ -32,10 +36,13 @@ def doMainMenu():
         return event
 
 
-def doTriangle():
-    #boat.triangle()
+def doTriangleInitialize():
     print("oui")
-    event = "wait"
+    
+    
+    
+    
+    
     return event
 
 
@@ -63,3 +70,5 @@ if __name__ == "__main__":
         else:
             funct()
             run = False
+else:
+    mybot = Boat.Boat()
