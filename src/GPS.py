@@ -14,7 +14,11 @@ class GPS:
         self.gps_com = gpsdrv.init_line()
 
     def read_sensor_values(self):
-        return gpsdrv.read_gll(self.gps_com)  # TO TEST
+        data = gpsdrv.read_gll(self.gps_com)
+        # divide by 100 to be in degrees
+        data[0] = data[0]/100  # North
+        data[2] = -data[2]/100  # West = -Est$
+        return data
 
     def destroy(self):
         gpsdrv.close(self.gps_com)
