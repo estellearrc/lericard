@@ -4,7 +4,7 @@ import time
 import sys
 import Boat
 
-triangle_remaining_points = []
+remaining_points = []
 
 
 def doWait():
@@ -14,7 +14,6 @@ def doWait():
     
 
 def doMainMenu():
-    global triangle_remaining_points = 0
     print(" Do a triangle [1] \n Leave [2]")
     a = input()
     try:
@@ -37,12 +36,31 @@ def doMainMenu():
 
 
 def doTriangleInitialize():
-    print("oui")
+    global remaining_points
+    print("Points to follow : ")
+    x_1 = 48.199482
+    y_1 = -3.014891
+    x_2 = 48.199295
+    y_2 = -3.016188
+    x_3 = 48.200187
+    y_3 = -3.015764
+    print("A : x=",x_1," y=",y_1)
+    print("B : x=",x_2," y=",y_2)
+    print("C : x=",x_3," y=",y_3)
+    remaining_points = [(x_1, y_1), (x_2, y_2), (x_3, y_3), (x_1, y_1)]
+    return "go"
     
     
-    
-    
-    
+def doFollowHeading():
+    global remaining_points
+    if len(remaining_points) > 0:
+        x_target, y_target = remaining_points.pop(0)
+        print("Going to point x=", x_target, " y=", y_target)
+        boat.follow_heading(boat. "", 80, 120, boat.reach_point, np.array([[x_target], [y_target]]))
+        event = "go"
+    else:
+        print("End of the triangle ...")
+        event = "stop"
     return event
 
 
@@ -71,4 +89,4 @@ if __name__ == "__main__":
             funct()
             run = False
 else:
-    mybot = Boat.Boat()
+    boat = Boat.Boat()
