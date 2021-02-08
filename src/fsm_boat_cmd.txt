@@ -1,15 +1,18 @@
 ----- States
 Idle
 Menu
-Triangle
+TriangleInit
+FollowHeading
 End
 ----- Transitions
 Idle Idle wait main.doWait
 Idle Menu go main.doMainMenu
 Menu Idle wait main.doWait
-Menu Triangle triangle main.doTriangleInitialize
+Menu TriangleInit triangle main.doTriangleInitialize
+TriangleInit FollowHeading go main.doFollowHeading
+FollowHeading FollowHeading go main.doFollowHeading
+FollowHeading Idle stop main.doWait
 Menu End stop main.doStop
-Triangle Idle wait main.doWait
 ----- Events
 wait
 go
