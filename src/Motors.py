@@ -15,3 +15,6 @@ class Motors:
 
     def command(self, cmdl, cmdr):
         ardudrv.send_arduino_cmd_motor(self.serial_arduino, cmdl, cmdr)
+
+    def stop(self):
+        ardudrv.send_arduino_cmd_motor(self.serial_arduino, 0, 0)
