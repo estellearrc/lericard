@@ -8,6 +8,6 @@ serial_encoders = encodrv.init_line()
 while True:
     encodrv.get_sync(serial_encoders)
     while True:
-        sync,data_encoders = encodrv.read_packet(serial_encoders,debug=True)
+        sync, data_encoders = encodrv.read_packet(serial_encoders, debug=True)
         if not sync:
             break
