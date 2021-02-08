@@ -1,4 +1,5 @@
 import drivers.arduino_driver_py3 as ardudrv
+import time
 
 
 class Motors:
@@ -18,3 +19,15 @@ class Motors:
 
     def stop(self):
         ardudrv.send_arduino_cmd_motor(self.serial_arduino, 0, 0)
+
+
+def test():
+    """ Try command motors """
+    motors = Motors()
+    motors.command(50, 50)
+    time.sleep(10)
+    motors.stop()
+
+
+if __name__ == "__main__":
+    test()

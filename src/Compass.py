@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 import numpy as np
+import smbus
+import time
 
 
 def merge(lower_byte, upper_byte):
@@ -43,6 +45,11 @@ class Compass:
             Compass.DEVICE_ADDRESS, Compass.CTRL_REG3, 0b00000000)
 
     def compute_calibration(self, x1, x_1, x2, x3):
+        """ Compute A and b -> y = inv(A)@(x+b)
+        y ideal magnetic field
+        x measured magnetic field
+        A matrix
+        b bias"""
         self.b = -1/2*(x1 + x_1)
         beta = 46000
         y1 = 1/beta*(x1+self.b)
@@ -59,3 +66,21 @@ class Compass:
             Compass.DEVICE_ADDRESS, Compass.OUT_X_L, 6)
         x, y, z = convert(six_values)
         return np.array([[x], [y], [z]])
+
+
+def test():
+    """ Retrieve compass measures x1, x_1, x2, x3 for earth magnetic field"""
+    while True:
+        bus = smbus.SMBus(1)
+        DEVICE_ADDRESS = 0x1e
+        CTRL_REG3 = 0x22
+        OUT_X_L = 0x28
+        bus.write_byte_data(DEVICE_ADDRESS, CTRL_REG3, 0b00000000)
+        six_values = bus.read_i2c_block_data(DEVICE_ADDRESS, OUT_X_L, 6)
+        x, y, z = convert(six_values)
+        print("[Bx, By, Bz] = [%f,%f,%f] = ", x, y, z)
+        time.sleep(1)
+
+
+if __name__ == "__main__":
+    test()
