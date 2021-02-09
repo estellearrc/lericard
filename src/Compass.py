@@ -75,22 +75,23 @@ class Compass:
 
     def compute_heading(self, Bx, By):
         """Magic formula"""
-        return sawtooth(np.arctan2(Bx, By) + np.pi/2)
+        return np.arctan2(By, Bx)
 
 
 def test():
     """ Retrieve compass measures x1, x_1, x2, x3 for earth magnetic field"""
-    while True:
-        bus = smbus.SMBus(1)
-        DEVICE_ADDRESS = 0x1e
-        CTRL_REG3 = 0x22
-        OUT_X_L = 0x28
-        bus.write_byte_data(DEVICE_ADDRESS, CTRL_REG3, 0b00000000)
-        six_values = bus.read_i2c_block_data(DEVICE_ADDRESS, OUT_X_L, 6)
-        x, y, z = convert(six_values)
-        print("[Bx, By, Bz] = [{}, {}, {}] = ".format(x, y, z))
-        print("cap = ", sawtooth(np.arctan2(Bx, By) + np.pi/2))
-        time.sleep(1)
+    pass
+    # while True:
+    #     bus = smbus.SMBus(1)
+    #     DEVICE_ADDRESS = 0x1e
+    #     CTRL_REG3 = 0x22
+    #     OUT_X_L = 0x28
+    #     bus.write_byte_data(DEVICE_ADDRESS, CTRL_REG3, 0b00000000)
+    #     six_values = bus.read_i2c_block_data(DEVICE_ADDRESS, OUT_X_L, 6)
+    #     x, y, z = convert(six_values)
+    #     print("[Bx, By, Bz] = [{}, {}, {}] = ".format(x, y, z))
+    #     print("cap = ", sawtooth(np.arctan2(x, y) + np.pi/2))
+    #     time.sleep(1)
 
 
 if __name__ == "__main__":
