@@ -9,12 +9,12 @@ class GPS:
     # precision de 1.9m au bout du ponton
     lx0 = 48.19906500
     ly0 = -3.01473333
-    file_name = "GPS_traceback.txt"
+    file_name = "GPS_traceback.csv"
 
     def __init__(self):
         self.range = 5
         self.gps_com = gpsdrv.init_line()
-        f = open(file_name, "w")
+        f = open(GPS.file_name, "w")
         f.close()
 
     def read_sensor_values(self):
@@ -40,8 +40,8 @@ class GPS:
         return self.convert_to_cart_coord(lx, ly)
         
     def write_coordinates(self, lon, lat):
-        with open(filename, "a") as f:
-            f.write(str(lon) + " " + str(lat))
+        with open(GPS.file_name, "a") as f:
+            f.write(str(lon) + "," + str(lat) + "\n")
             
 
 def test():
@@ -51,8 +51,8 @@ def test():
         data = gps.read_sensor_values()
         print("[long, lat] = [{}, {}]".format(data[0], data[2]))
         data = gps.read_cart_coord()
-        print("[xtilde, ytilde] = [{}, {}]".format(data[0, 0], data[1, 0]))
-        time.sleep(1)
+        #print("[xtilde, ytilde] = [{}, {}]".format(data[0, 0], data[1, 0]))
+        time.sleep(0.1)
 
 
 if __name__ == "__main__":
