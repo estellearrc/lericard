@@ -34,7 +34,7 @@ class Boat:
         self.motors = Motors()
         self.gps = GPS()
 
-    def follow_heading(self, heading_obj, vmin, vmax, f_stop, arg):
+    def follow_heading(self, target_point, vmin, vmax, f_stop, arg):
         """heading_obj instruction
         vmin minimum speed
         vmax maximum speed
@@ -42,6 +42,9 @@ class Boat:
         arg argument of f_stop """
 
         while f_stop(arg):
+            # heading_obj = self.compute_heading(target_point)
+            heading_obj = 0
+        
             vx, vy, vz = self.compass.read_sensor_values().flatten()
             X = np.array([vx, vy, vz]).reshape((3, 1))
 

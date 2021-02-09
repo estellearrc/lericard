@@ -26,7 +26,6 @@ def fsimu(X,u):
     Y = np.array([x1d, x2d, x3d, x4d])
     return Y
 
-psibar = 0
 
 def commandecap(psibar, psi, vmin, vmax):
     e = sawtooth(psi - psibar)
@@ -34,6 +33,20 @@ def commandecap(psibar, psi, vmin, vmax):
     u1 = int(0.5*v*(1 - K*e))
     u2 = int(0.5*v*(1 + K*e))
     return [u1, u2]
+
+
+def reach_point(X, x_target):
+    """Return false when a certain point has been reached
+    point is a 2d-array"""
+    xy_tilde = array([[X[0]], [X[1]]])
+    return norm(x_target-xy_tilde) <= 1
+
+
+def compute_heading(X, target_point):
+    """ Return heading to go to target point
+    target_point array"""
+    actual_pos = array([[X[0]], [X[1]]])
+    return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
 
 q1 = 0
 
@@ -60,6 +73,9 @@ T = []
 on_edge = False
 follow_edge_angle = (13*pi)/12
 collision = False
+targets = [array([[2], [5]]), array([[xmin+2], [ymax-3]]), array([[xmax/2], [ymax/8]])]
+target_point = targets.pop(0)
+psibar = compute_heading(X, target_point)
 
 while t < 300:
     X1.append(X[0])
@@ -73,11 +89,18 @@ while t < 300:
     draw_segment(array([[xmin],[ymin]]),array([[xmax],[ymin]]))
     draw_segment(array([[xmax],[ymin]]),array([[xmax],[ymax]]))
     draw_segment(array([[xmin],[ymax]]),array([[xmax],[ymax]]))
+    
+    if reach_point(X, target_point):
+        target_point = targets.pop(0)
+    
+    psibar = compute_heading(X, target_point)
 
-    if on_edge:
-        u = commandecap(follow_edge_angle, X[2], 150, 300)
-    else:
-        u = commandecap(7*pi/8, X[2], 150, 300)
+    # if on_edge:
+    #    u = commandecap(follow_edge_angle, X[2], 150, 300)
+    # else:
+    #    u = commandecap(7*pi/8, X[2], 150, 300)
+
+    u = commandecap(psibar, X[2], 150, 300)
 
     dX = fsimu(X, u)
     X = X + dX*dt
@@ -90,12 +113,12 @@ while t < 300:
         X[3] = -1.2*X[3]
         collision = True
 
-    if collision:
-        collision = False
-        if on_edge == False:
-            on_edge = True
-        else:
-            follow_edge_angle = (follow_edge_angle + np.pi/2 - np.pi)%(2*np.pi) - np.pi
+    # if collision:
+    #     collision = False
+    #    if on_edge == False:
+    #         on_edge = True
+    #     else:
+    #         follow_edge_angle = (follow_edge_angle + np.pi/2 - np.pi)%(2*np.pi) - np.pi
 
     draw_tank(array([[X[0]],[X[1]],[X[2]]]),r=0.25,w=0.5)
 

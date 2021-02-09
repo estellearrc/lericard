@@ -62,8 +62,7 @@ def doFollowHeading():
         x_target, y_target = remaining_points.pop(0)
         target_point = np.array([[x_target], [y_target]])
         print("Going to point x=", x_target, " y=", y_target)
-        boat.follow_heading(boat.compute_heading(
-            target_point), 80, 120, boat.reach_point, target_point)
+        boat.follow_heading(target_point, 80, 120, boat.reach_point, target_point)
         #boat.follow_line(self, pointA, pointB, 80, 120)
         event = "go"
     else:
