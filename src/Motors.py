@@ -27,7 +27,6 @@ class Motors:
 
     def compute_command(self, e):
         # linearization loop
-        print(e)
         M = np.array([[1, -1], [1, 1]])
         b = np.array([[sawtooth(e)], [1]])
         M_1 = np.linalg.pinv(M)  # resolution of the system

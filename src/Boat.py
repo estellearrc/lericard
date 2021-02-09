@@ -51,34 +51,6 @@ class Boat:
             heading = self.compass.compute_heading(X[0, 0], X[1, 0])
             print("compass : ", heading)
 
-            e = sawtooth(heading_obj - heading)
-
-            u_right = 0.5*vbar * (1 - Boat.k * e)
-            u_left = 0.5*vbar * (1 + Boat.k * e)
-            # print("correction retour=", 0.2*(e-e_prev))
-            print("erreur = ", Boat.k*e)
-            print("u_right = ", u_right)
-            print("u_left = ", u_left)
-            # prev_e = e
-            self.motors.command(u_left, u_right)
-
-    def follow_heading2(self, target_point, vbar, f_stop, arg):
-        """heading_obj instruction
-        vmin minimum speed
-        vmax maximum speed
-        f_stop stopping condition
-        arg argument of f_stop """
-
-        while f_stop(arg):
-            #heading_obj = self.compute_heading(target_point)
-            heading_obj = 0
-
-            vx, vy, vz = self.compass.read_sensor_values().flatten()
-            X = np.array([vx, vy, vz]).reshape((3, 1))
-
-            heading = self.compass.compute_heading(X[0, 0], X[1, 0])
-            print("compass : ", heading)
-
             # increase the range of the gisement angle
             e = 0.5*(heading_obj - heading)
             u = np.abs(self.motors.compute_command(e))
