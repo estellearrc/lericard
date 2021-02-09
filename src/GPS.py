@@ -20,8 +20,11 @@ class GPS:
     def read_sensor_values(self):
         data = gpsdrv.read_gll(self.gps_com)
         # divide by 100 to be in degrees
-        data[0] = data[0]/100  # North
-        data[2] = -data[2]/100  # West = -Est
+        # ly = pi*(DD+mm.mm/60)/100
+        DDx = int(data[0]/100)
+        data[0] = np.pi*(DDx + (data[0]-DDx)/60)  # North
+        DDy = int(data[2]/100)
+        data[2] = -np.pi*(DDy + (data[2]-DDy)/60)  # West = -Est
         self.write_coordinates(data[0], data[2])
         return data
 
@@ -51,7 +54,7 @@ def test():
         data = gps.read_sensor_values()
         print("[long, lat] = [{}, {}]".format(data[0], data[2]))
         data = gps.read_cart_coord()
-        #print("[xtilde, ytilde] = [{}, {}]".format(data[0, 0], data[1, 0]))
+        # print("[xtilde, ytilde] = [{}, {}]".format(data[0, 0], data[1, 0]))
         time.sleep(0.1)
 
 

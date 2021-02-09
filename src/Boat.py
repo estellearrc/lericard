@@ -12,7 +12,7 @@ def sawtooth(x):
 
 
 class Boat:
-    k = 1/np.pi
+    k = 0.1/np.pi
     lx_home = 48.199129
     ly_home = -3.014017
 
@@ -59,7 +59,35 @@ class Boat:
             print("erreur = ", Boat.k*e)
             print("u_right = ", u_right)
             print("u_left = ", u_left)
-            prev_e = e
+            # prev_e = e
+            self.motors.command(u_left, u_right)
+
+    def follow_heading2(self, target_point, vbar, f_stop, arg):
+        """heading_obj instruction
+        vmin minimum speed
+        vmax maximum speed
+        f_stop stopping condition
+        arg argument of f_stop """
+
+        while f_stop(arg):
+            #heading_obj = self.compute_heading(target_point)
+            heading_obj = 0
+
+            vx, vy, vz = self.compass.read_sensor_values().flatten()
+            X = np.array([vx, vy, vz]).reshape((3, 1))
+
+            heading = self.compass.compute_heading(X[0, 0], X[1, 0])
+            print("compass : ", heading)
+
+            e = sawtooth(heading_obj - heading)
+
+            u_right = 0.5*vbar * (1 - Boat.k * e)
+            u_left = 0.5*vbar * (1 + Boat.k * e)
+            # print("correction retour=", 0.2*(e-e_prev))
+            print("erreur = ", Boat.k*e)
+            print("u_right = ", u_right)
+            print("u_left = ", u_left)
+            # prev_e = e
             self.motors.command(u_left, u_right)
 
     # def f(x1,x2):
@@ -70,9 +98,9 @@ class Boat:
     def follow_line_potential(self, b):
         gpgll_a = self.gps.read_sensor_values()
         a = self.gps.convert_to_cart_coord(gpgll_a[0, 0], gpgll_a[1, 0])
-        t0 = gpgll[4]
-        v0 = 100
+        t0 = gpgll_a[4]
         d = (b-a)/norm(b-a)  # direction vector of the line ab
+        v0 = 100*d
         n = np.array([[-d[1, 0]], [d[0, 0]]])  # normal vector of the line ab
         gpgll = self.gps.read_sensor_values()
         p = self.gps.convert_to_cart_coord(gpgll[0, 0], gpgll[1, 0])
@@ -85,9 +113,9 @@ class Boat:
             # moving attractive point
             phat = a + v0*(t-t0)
             # vector field
-            w = -n@n.T@(p-a)+v0+p-phat
+            w = -n@n.T@(p-a)+v0+0.1*(p-phat)
             vbar = norm(w)
-            thetabar = arctan2(w[1, 0], w[0, 0])
+            thetabar = np.arctan2(w[1, 0], w[0, 0])
 
             # commande proportionnelle
             e = sawtooth(thetabar-heading)

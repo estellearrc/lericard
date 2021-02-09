@@ -1,5 +1,10 @@
 import drivers.arduino_driver_py3 as ardudrv
 import time
+import numpy as np
+
+
+def sawtooth(x):
+    return (x+np.pi) % (2*np.pi)-np.pi
 
 
 class Motors:
@@ -19,6 +24,15 @@ class Motors:
 
     def stop(self):
         ardudrv.send_arduino_cmd_motor(self.serial_arduino, 0, 0)
+
+    def compute_command(self, e):
+        # linearization loop
+        print(e)
+        M = np.array([[1, -1], [1, 1]])
+        b = np.array([[sawtooth(e)], [1]])
+        M_1 = np.linalg.pinv(M)  # resolution of the system
+        u = M_1.dot(b)  # command motor array
+        return 50*u
 
 
 def test():
