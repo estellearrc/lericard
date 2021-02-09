@@ -12,13 +12,12 @@ def sawtooth(x):
 
 
 class Boat:
-    k = 0.05
+
+    k = 0.5  # 1.15
     lx_home = 48.199129
     ly_home = -3.014017
 
-
-120
-   def __init__(self):
+    def __init__(self):
         # Compass calibration
         # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
         self.bus = smbus.SMBus(1)
@@ -64,7 +63,7 @@ class Boat:
             print("u_left = ", u_left)
             print("u_right = ", u_right)
             self.motors.command(u_left, u_right)
-    
+
     # def f(x1,x2):
     #     d = (b-a)/norm(b-a) # direction vector of the line ab
     #     n = np.array([[-d[1,0]],[d[0,0]]]) #normal vector of the line ab
@@ -72,18 +71,18 @@ class Boat:
 
     def follow_line_potential(self, b):
         gpgll_a = self.gps.read_sensor_values()
-        a = self.gps.convert_to_cart_coord(gpgll_a[0,0],gpgll_a[1,0])
+        a = self.gps.convert_to_cart_coord(gpgll_a[0, 0], gpgll_a[1, 0])
         t0 = gpgll[4]
         v0 = 100
-        d = (b-a)/norm(b-a) # direction vector of the line ab
-        n = np.array([[-d[1,0]],[d[0,0]]]) #normal vector of the line ab
+        d = (b-a)/norm(b-a)  # direction vector of the line ab
+        n = np.array([[-d[1, 0]], [d[0, 0]]])  # normal vector of the line ab
         gpgll = self.gps.read_sensor_values()
-        p = self.gps.convert_to_cart_coord(gpgll[0,0],gpgll[1,0])
-        while norm(p - b) > 1: #while the boat hasn't reached point b
+        p = self.gps.convert_to_cart_coord(gpgll[0, 0], gpgll[1, 0])
+        while norm(p - b) > 1:  # while the boat hasn't reached point b
             gpgll = self.gps.read_sensor_values()
-            p = self.gps.convert_to_cart_coord(gpgll[0,0],gpgll[1,0])
+            p = self.gps.convert_to_cart_coord(gpgll[0, 0], gpgll[1, 0])
             B = self.compass.read_sensor_values()
-            heading = self.compass.compute_heading(B[0,0],B[1,0])
+            heading = self.compass.compute_heading(B[0, 0], B[1, 0])
             t = gpgll[4]
             # moving attractive point
             phat = a + v0*(t-t0)
@@ -94,11 +93,10 @@ class Boat:
 
             # commande proportionnelle
             e = sawtooth(thetabar-heading)
-            u_right = int(0.5*v_bar*(1 + Boat.k*e))
-            u_left = int(0.5*v_bar*(1 - Boat.k*e))
+            u_right = int(0.5*vbar*(1 + Boat.k*e))
+            u_left = int(0.5*vbar*(1 - Boat.k*e))
             self.motors.command(u_left, u_right)
             time.sleep(0.2)
-
 
     def follow_line_heading(self, pointB, vmin, vmax):
 

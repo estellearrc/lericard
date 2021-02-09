@@ -38,11 +38,11 @@ class GPS:
         lx = data_array[0]  # North / longitude
         ly = data_array[2]  # West / latitude
         return self.convert_to_cart_coord(lx, ly)
-        
+
     def write_coordinates(self, lon, lat):
         with open(GPS.file_name, "a") as f:
             f.write(str(lon) + "," + str(lat) + "\n")
-            
+
 
 def test():
     """ Try GPS """

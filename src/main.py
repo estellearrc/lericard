@@ -65,6 +65,7 @@ def doFollowHeading():
         boat.follow_heading(target_point, 80, 100,
                             boat.reach_point, target_point)
         #boat.follow_line(self, pointA, pointB, 80, 120)
+        # boat.follow_line_potential(target_point)
         event = "go"
     else:
         print("End of the triangle ...")
