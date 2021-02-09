@@ -8,7 +8,7 @@ import time
 
 
 def sawtooth(x):
-    return (x+2*np.pi) % (2*np.pi)-np.pi
+    return (x+np.pi) % (2*np.pi)-np.pi
 
 
 class Boat:
@@ -20,11 +20,16 @@ class Boat:
         # Compass calibration
         # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
         self.bus = smbus.SMBus(1)
-        # Calibrage de la boussole
-        x1 = np.array([[-2388], [-1892], [1668]])
-        x_1 = np.array([[2870], [-2650], [1404]])
-        x2 = np.array([[-50], [-5430], [3447]])
-        x3 = np.array([[300], [-2020], [6780]])
+        # # Calibrage de la boussole boat 14
+        # x1 = np.array([[-2388], [-1892], [1668]])
+        # x_1 = np.array([[2870], [-2650], [1404]])
+        # x2 = np.array([[-50], [-5430], [3447]])
+        # x3 = np.array([[300], [-2020], [6780]])
+        # Calibrage de la boussole boat 15
+        x1 = np.array([[-5494], [1018], [-215]])
+        x_1 = np.array([[499], [268], [-2538]])
+        x2 = np.array([[-1518], [-2066], [-2431]])
+        x3 = np.array([[-1692], [626], [2735]])
         self.compass = Compass(self.bus, x1, x_1, x2, x3)
         self.motors = Motors()
         self.gps = GPS()

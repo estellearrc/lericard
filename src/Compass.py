@@ -5,6 +5,10 @@ import smbus
 import time
 
 
+def sawtooth(x):
+    return (x+np.pi) % (2*np.pi)-np.pi
+
+
 def merge(lower_byte, upper_byte):
     """merge 2 bytes (2*8 bits) to form a 16-bit long binary integer"""
     res = lower_byte + upper_byte*256
@@ -69,6 +73,10 @@ class Compass:
         B = np.linalg.inv(self.A)@(X + self.b)
         return B
 
+    def compute_heading(self, Bx, By):
+        """Magic formula"""
+        return sawtooth(np.arctan2(Bx, By) + np.pi/2)
+
 
 def test():
     """ Retrieve compass measures x1, x_1, x2, x3 for earth magnetic field"""
@@ -80,7 +88,8 @@ def test():
         bus.write_byte_data(DEVICE_ADDRESS, CTRL_REG3, 0b00000000)
         six_values = bus.read_i2c_block_data(DEVICE_ADDRESS, OUT_X_L, 6)
         x, y, z = convert(six_values)
-        print("[Bx, By, Bz] = [%f,%f,%f] = ", x, y, z)
+        print("[Bx, By, Bz] = [{}, {}, {}] = ".format(x, y, z))
+        print("cap = ", sawtooth(np.arctan2(Bx, By) + np.pi/2))
         time.sleep(1)
 
 
