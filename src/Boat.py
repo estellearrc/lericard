@@ -37,7 +37,8 @@ class Boat:
         arg argument of f_stop """
 
         while f_stop(arg):
-            heading_obj = self.compute_heading(target_point)
+            # heading_obj = self.compute_heading(target_point)
+            heading_obj = 0
         
             vx, vy, vz = self.compass.read_sensor_values().flatten()
             X = np.array([vx, vy, vz]).reshape((3, 1))
