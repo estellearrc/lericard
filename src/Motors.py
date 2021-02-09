@@ -32,7 +32,7 @@ class Motors:
         b = np.array([[sawtooth(e)], [1]])
         M_1 = np.linalg.pinv(M)  # resolution of the system
         u = M_1.dot(b)  # command motor array
-        return 50*u
+        return u
 
 
 def test():

@@ -79,21 +79,14 @@ class Boat:
             heading = self.compass.compute_heading(X[0, 0], X[1, 0])
             print("compass : ", heading)
 
-            e = sawtooth(heading_obj - heading)
+            # increase the range of the gisement angle
+            e = 0.5*(heading_obj - heading)
+            u = np.abs(self.motors.compute_command(e))
 
-            u_right = 0.5*vbar * (1 - Boat.k * e)
-            u_left = 0.5*vbar * (1 + Boat.k * e)
-            # print("correction retour=", 0.2*(e-e_prev))
-            print("erreur = ", Boat.k*e)
-            print("u_right = ", u_right)
-            print("u_left = ", u_left)
-            # prev_e = e
+            coef_left_motor = 1.5
+            u_left = vbar*coef_left_motor*u[0, 0]
+            u_right = vbar*u[1, 0]  # command right motor
             self.motors.command(u_left, u_right)
-
-    # def f(x1,x2):
-    #     d = (b-a)/norm(b-a) # direction vector of the line ab
-    #     n = np.array([[-d[1,0]],[d[0,0]]]) #normal vector of the line ab
-    #     # vector field
 
     def follow_line_potential(self, b):
         gpgll_a = self.gps.read_sensor_values()
