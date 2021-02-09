@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg import norm, det, sign
+from numpy.linalg import norm, det
 from Compass import *
 from Motors import *
 from GPS import *
@@ -12,11 +12,13 @@ def sawtooth(x):
 
 
 class Boat:
-    k = 1.15
+    k = 0.05
     lx_home = 48.199129
     ly_home = -3.014017
 
-    def __init__(self):
+
+120
+   def __init__(self):
         # Compass calibration
         # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
         self.bus = smbus.SMBus(1)
@@ -42,13 +44,12 @@ class Boat:
         arg argument of f_stop """
 
         while f_stop(arg):
-            # heading_obj = self.compute_heading(target_point)
-            heading_obj = 0
-        
+            heading_obj = self.compute_heading(target_point)
+
             vx, vy, vz = self.compass.read_sensor_values().flatten()
             X = np.array([vx, vy, vz]).reshape((3, 1))
 
-            heading = np.arctan2(X[0, 0], X[1, 0])
+            heading = self.compass.compute_heading(X[0, 0], X[1, 0])
             print("heading =", heading)
 
             e = sawtooth(heading - heading_obj)
@@ -57,8 +58,11 @@ class Boat:
 
             v = ((abs(e)*(vmax - vmin)) / np.pi) + vmin
 
-            u_left = int(0.5*v*(1 + Boat.k*e))
-            u_right = int(0.5*v*(1 - Boat.k*e))
+            u_right = int(0.5*v*(1 + Boat.k*e))
+            u_left = int(0.5*v*(1 - Boat.k*e))
+            print("v=", v)
+            print("u_left = ", u_left)
+            print("u_right = ", u_right)
             self.motors.command(u_left, u_right)
 
     def follow_line(self, pointB, vmin, vmax):
@@ -72,7 +76,8 @@ class Boat:
             x = x.flatten()
             mag_field = self.compass.read_sensor_values()
             # boat actual heading
-            theta = np.arctan2(mag_field[1, 0], mag_field[0, 0])
+            theta = self.compass.compute_heading(
+                mag_field[0, 0], mag_field[1, 0])
             m = np.array([[x[0]], [x[1]]])  # position GPS (x,y)
             # error to the following line
             e_dist = det(
@@ -80,7 +85,11 @@ class Boat:
             # heading of the line to follow
 
             if abs(e_dist) > self.gps.range:
-                q = sign(e_dist)
+                if e_dist > 0:
+                    q = 1
+                else:
+                    q = -1
+                # q = sign(e_dist)
 
             theta_bar = phi - np.arctan(e_dist/self.gps.range)
 
@@ -120,7 +129,9 @@ def test():
     """ Retrieve earth magnetic field"""
     b = Boat()
     while True:
-        print(b.compass.read_sensor_values())
+        B = b.compass.read_sensor_values()
+        # print(B)
+        print("cap = ", np.arctan2(B[1, 0], B[0, 0]))
         time.sleep(1)
 
 
