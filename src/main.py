@@ -97,7 +97,7 @@ if __name__ == "__main__":
                 run = False
         except:
             print("I'm coming home bitches!")
-            boat = Boat.Boat()
+            # boat = Boat.Boat()
             boat.back_to_home()
             boat.stop()
 else:
