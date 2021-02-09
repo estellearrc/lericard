@@ -24,13 +24,16 @@ class GPS:
     def destroy(self):
         gpsdrv.close(self.gps_com)
 
+    def convert_to_cart_coord(self, lx, ly):
+        x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
+        y_tilde = GPS.rho*(ly-GPS.ly0)
+        return np.array([[x_tilde], [y_tilde]])
+
     def read_cart_coord(self):
         data_array = self.read_sensor_values()
         lx = data_array[0]  # North / longitude
         ly = data_array[2]  # West / latitude
-        x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
-        y_tilde = GPS.rho*(ly-GPS.ly0)
-        return np.array([[x_tilde], [y_tilde]])
+        return self.convert_to_cart_coord(lx, ly)
 
 
 def test():

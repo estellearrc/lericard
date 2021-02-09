@@ -45,10 +45,14 @@ def doTriangleInitialize():
     y_2 = -3.016188
     x_3 = 48.200187
     y_3 = -3.015764
+    X1 = boat.gps.convert_to_cart_coord(x_1, y_1)
+    X2 = boat.gps.convert_to_cart_coord(x_2, y_2)
+    X3 = boat.gps.convert_to_cart_coord(x_3, y_3)
     print("A : x=", x_1, " y=", y_1)
     print("B : x=", x_2, " y=", y_2)
     print("C : x=", x_3, " y=", y_3)
-    remaining_points = [(x_1, y_1), (x_2, y_2), (x_3, y_3), (x_1, y_1)]
+    remaining_points = [(X1[0, 0], X1[1, 0]), (X2[0, 0], X2[1, 0]),
+                        (X3[0, 0], X3[1, 0]), (X1[0, 0], X1[1, 0])]
     return "go"
 
 
@@ -80,21 +84,21 @@ if __name__ == "__main__":
     f.load_fsm_from_file("fsm_boat_cmd.txt")
     run = True
     while run:
-        # try:
-        funct = f.run()
-        if f.curState != f.endState:
-            newEvent = funct()
-            if newEvent is None:
-                break
+        try:
+            funct = f.run()
+            if f.curState != f.endState:
+                newEvent = funct()
+                if newEvent is None:
+                    break
+                else:
+                    f.set_event(newEvent)
             else:
-                f.set_event(newEvent)
-        else:
-            funct()
-            run = False
-        # except:
-        #     print("I'm coming home bitches!")
-        #     boat = Boat.Boat()
-        #     boat.back_to_home()
-        #     boat.stop()
+                funct()
+                run = False
+        except:
+            print("I'm coming home bitches!")
+            boat = Boat.Boat()
+            boat.back_to_home()
+            boat.stop()
 else:
     boat = Boat.Boat()

@@ -41,8 +41,11 @@ class Boat:
             X = np.array([vx, vy, vz]).reshape((3, 1))
 
             heading = np.arctan2(X[0, 0], X[1, 0])
+            print("heading =", heading)
 
             e = sawtooth(heading - heading_obj)
+            print("heading_obj: ", heading_obj)
+            print("error = ", e)
 
             v = ((abs(e)*(vmax - vmin)) / np.pi) + vmin
 
@@ -50,42 +53,41 @@ class Boat:
             u_right = int(0.5*v*(1 - Boat.k*e))
             self.motors.command(u_left, u_right)
 
-
     def follow_line(self, pointB, vmin, vmax):
-        phi = np.arctan2(pointB[1, 0]-pointA[1, 0], pointB[0, 0]-pointA[0, 0])
-        
+
         pointA = self.gps.read_cart_coord()
         # Starting point of the robot in the line following towards pointB
-        
+        phi = np.arctan2(pointB[1, 0]-pointA[1, 0], pointB[0, 0]-pointA[0, 0])
+
         while self.reach_point(pointB):
             x = self.gps.read_cart_coord()
             x = x.flatten()
             mag_field = self.compass.read_sensor_values()
-            # boat's actual heading
+            # boat actual heading
             theta = np.arctan2(mag_field[1, 0], mag_field[0, 0])
             m = np.array([[x[0]], [x[1]]])  # position GPS (x,y)
-            # erreur à la ligne de suivi
-            e_dist = det(np.hstack(((pointB-pointA)/norm(pointA-pointB), m-pointA)))
-            # cap de la ligne à suivre
-            
+            # error to the following line
+            e_dist = det(
+                np.hstack(((pointB-pointA)/norm(pointA-pointB), m-pointA)))
+            # heading of the line to follow
+
             if abs(e_dist) > self.gps.range:
                 q = sign(e_dist)
 
             theta_bar = phi - np.arctan(e_dist/self.gps.range)
-            
+
             e_heading = sawtooth(theta - theta_bar)
 
-            v = ((abs(u)*(vmax - vmin)) / np.pi) + vmin
-            
+            v = ((abs(e_heading)*(vmax - vmin)) / np.pi) + vmin
+
             if q > 0:
-                # /!\ Il faut peut etre intervertir
+                # Il faut peut etre intervertir
                 u_left = int(0.5*v*(1 + Boat.k*e_heading))
                 u_right = int(0.5*v*(1 - Boat.k*e_heading))
             else:
                 u_right = int(0.5*v*(1 + Boat.k*e_heading))
                 u_left = int(0.5*v*(1 - Boat.k*e_heading))
             self.motors.command(u_left, u_right)
-        
 
     def reach_point(self, point):
         """Return false when a certain point has been reached
@@ -93,13 +95,11 @@ class Boat:
         xy_tilde = self.gps.read_cart_coord()
         return norm(point-xy_tilde) >= 1
 
-
     def compute_heading(self, target_point):
         """ Return heading to go to target point
         target_point array"""
         actual_pos = self.gps.read_cart_coord()
         return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
-
 
     def back_to_home(self):
         """Bring back the DDBoat home"""
