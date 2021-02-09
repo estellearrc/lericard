@@ -12,13 +12,12 @@ def sawtooth(x):
 
 
 class Boat:
-    k = 0.05
+    k = 1/np.pi
     lx_home = 48.199129
     ly_home = -3.014017
 
 
-120
-   def __init__(self):
+    def __init__(self):
         # Compass calibration
         # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
         self.bus = smbus.SMBus(1)
@@ -36,7 +35,7 @@ class Boat:
         self.motors = Motors()
         self.gps = GPS()
 
-    def follow_heading(self, target_point, vmin, vmax, f_stop, arg):
+    def follow_heading(self, target_point, vbar, f_stop, arg):
         """heading_obj instruction
         vmin minimum speed
         vmax maximum speed
@@ -44,25 +43,24 @@ class Boat:
         arg argument of f_stop """
 
         while f_stop(arg):
-            heading_obj = self.compute_heading(target_point)
+            #heading_obj = self.compute_heading(target_point)
+            heading_obj = 0
 
             vx, vy, vz = self.compass.read_sensor_values().flatten()
             X = np.array([vx, vy, vz]).reshape((3, 1))
 
             heading = self.compass.compute_heading(X[0, 0], X[1, 0])
-            print("heading =", heading)
+            print("compass : ", heading)
 
-            e = sawtooth(heading - heading_obj)
-            print("heading_obj: ", heading_obj)
-            print("error = ", e)
+            e = sawtooth(heading_obj - heading)
 
-            v = ((abs(e)*(vmax - vmin)) / np.pi) + vmin
-
-            u_right = int(0.5*v*(1 + Boat.k*e))
-            u_left = int(0.5*v*(1 - Boat.k*e))
-            print("v=", v)
-            print("u_left = ", u_left)
+            u_right = 0.5*vbar * (1 - Boat.k * e)
+            u_left = 0.5*vbar * (1 + Boat.k * e)
+            # print("correction retour=", 0.2*(e-e_prev))
+            print("erreur = ", Boat.k*e)
             print("u_right = ", u_right)
+            print("u_left = ", u_left)
+            prev_e = e
             self.motors.command(u_left, u_right)
     
     # def f(x1,x2):
