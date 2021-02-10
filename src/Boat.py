@@ -34,7 +34,7 @@ class Boat:
         self.motors = Motors()
         self.gps = GPS()
 
-    def follow_heading(self, target_point, vbar, f_stop, arg):
+    def follow_heading(self, heading_obj, v_obj, f_stop, arg):
         """heading_obj instruction
         vmin minimum speed
         vmax maximum speed
@@ -51,13 +51,13 @@ class Boat:
             heading = self.compass.compute_heading(X[0, 0], X[1, 0])
             print("compass : ", heading)
 
-            # increase the range of the gisement angle
+            # increase the range of the bearing angle
             e = 0.5*(heading_obj - heading)
             u = np.abs(self.motors.compute_command(e))
-
+            
             coef_left_motor = 1.5
-            u_left = vbar*coef_left_motor*u[0, 0]
-            u_right = vbar*u[1, 0]  # command right motor
+            u_left = v_obj*coef_left_motor*u[0, 0]
+            u_right = v_obj*u[1, 0]  # command right motor
             self.motors.command(u_left, u_right)
 
     def follow_line_potential(self, b):
@@ -79,13 +79,13 @@ class Boat:
             phat = a + v0*(t-t0)
             # vector field
             w = -n@n.T@(p-a)+v0+0.1*(p-phat)
-            vbar = norm(w)
+            v_obj = norm(w)
             thetabar = np.arctan2(w[1, 0], w[0, 0])
 
             # commande proportionnelle
             e = sawtooth(thetabar-heading)
-            u_right = int(0.5*vbar*(1 + Boat.k*e))
-            u_left = int(0.5*vbar*(1 - Boat.k*e))
+            u_right = int(0.5*v_obj*(1 + Boat.k*e))
+            u_left = int(0.5*v_obj*(1 - Boat.k*e))
             self.motors.command(u_left, u_right)
             time.sleep(0.2)
 
