@@ -12,7 +12,8 @@ def sawtooth(x):
 
 
 class Boat:
-    k = 0.1/np.pi
+    Kp = 0.8
+    Kd = 0.4
     lx_home = 48.199129
     ly_home = -3.014017
     coef_left_motor = 1.25
@@ -34,21 +35,28 @@ class Boat:
         self.compass = Compass(self.bus, x1, x_1, x2, x3)
         self.motors = Motors()
         self.gps = GPS()
+        self.last_error = 0
 
     def follow_heading(self, heading, heading_obj, v_obj):
         """Returns motors commands from an heading to follow"""
         
         # increase the range of the bearing angle
         e = 0.35*(heading_obj - heading)
-        u = self.motors.compute_command(e)
+        
+        M = np.array([[1, -1], [1, 1]])
+        b = np.array([[Boat.Kp*sawtooth(e) - Boat.Kd*sawtooth(self.last_error)], [1]])
+        M_1 = np.linalg.pinv(M)  # resolution of the system
+        u = M_1.dot(b)  # command motor array
 
         u_left = v_obj*Boat.coef_left_motor*u[0, 0]
         u_right = v_obj*u[1, 0]  # command right motor
         print("uleft = ", u_left)
         print("uright = ", u_right)
+        
+        self.last_error = e
 
         return u_left, u_right
-
+                
     def follow_line_potential(self, b):
         gpgll_a = self.gps.read_sensor_values()
         a = self.gps.convert_to_cart_coord(gpgll_a[0, 0], gpgll_a[1, 0])
