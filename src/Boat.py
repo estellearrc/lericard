@@ -14,7 +14,6 @@ def sawtooth(x):
 
 class Boat:
     Kp = 1
-    Kd = 0
     lx_home = 48.199129
     ly_home = -3.014017
     coef_left_motor = 1.4
@@ -45,7 +44,7 @@ class Boat:
         e = 0.35*(heading_obj - heading)
 
         M = np.array([[1, -1], [1, 1]])
-        b = np.array([[Boat.Kp*sawtooth(e) - Boat.Kd *
+        b = np.array([[Boat.Kp*sawtooth(e)
                        (sawtooth(e) - sawtooth(self.last_error))], [1]])
         M_1 = np.linalg.pinv(M)  # resolution of the system
         u = M_1.dot(b)  # command motor array
@@ -53,39 +52,42 @@ class Boat:
         u_left = v_obj*Boat.coef_left_motor*u[0, 0]
         u_right = v_obj*u[1, 0]  # command right motor
         print("e=", e)
-
-        self.last_error = e
-
         return u_left, u_right
 
-    def follow_line_potential(self, b):
-        gpgll_a = self.gps.read_sensor_values()
-        a = self.gps.convert_to_cart_coord(gpgll_a[0, 0], gpgll_a[1, 0])
-        t0 = gpgll_a[4]
-        d = (b-a)/norm(b-a)  # direction vector of the line ab
+    def follow_line_potential(self,t0,d,p,b,heading,t,a):
+        """
+        Return motos commands from a direction vector
+        t0: departure time
+        d:  direction of vector ab -->(b-a)/norm(b-a)
+        p: boat postion array([[x],[y]])
+        b: target point
+        rq: while norm(p - b) > 1:  # while the boat hasn't reached point b
+        heading : current heading of the boat
+        t: current time
+        a: departure point
+        """
         v0 = 100*d
         n = np.array([[-d[1, 0]], [d[0, 0]]])  # normal vector of the line ab
-        gpgll = self.gps.read_sensor_values()
-        p = self.gps.convert_to_cart_coord(gpgll[0, 0], gpgll[1, 0])
-        while norm(p - b) > 1:  # while the boat hasn't reached point b
-            gpgll = self.gps.read_sensor_values()
-            p = self.gps.convert_to_cart_coord(gpgll[0, 0], gpgll[1, 0])
-            B = self.compass.read_sensor_values()
-            heading = self.compass.compute_heading(B[0, 0], B[1, 0])
-            t = gpgll[4]
-            # moving attractive point
-            phat = a + v0*(t-t0)
-            # vector field
-            w = -n@n.T@(p-a)+v0+0.1*(p-phat)
-            v_obj = norm(w)
-            thetabar = np.arctan2(w[1, 0], w[0, 0])
+        # moving attractive point
+        phat = a + v0*(t-t0)
+        # vector field
+        w = -n@n.T@(p-a)+v0+0.1*(p-phat)
+        v_obj = norm(w)
+        thetabar = np.arctan2(w[1, 0], w[0, 0])
+        # commande proportionnelle
+        e = sawtooth(thetabar-heading)
+        # Compute motor commande
+        M = np.array([[1, -1], [1, 1]])
+        b = np.array([[Boat.Kp*sawtooth(e)
+                       (sawtooth(e) - sawtooth(self.last_error))], [1]])
+        M_1 = np.linalg.pinv(M)  # resolution of the system
+        u = M_1.dot(b)  # command motor array
+        u_left = v_obj*Boat.coef_left_motor*u[0, 0]
+        u_right = v_obj*u[1, 0]  # command right motor
+        print("e=", e)
+        return u_left, u_right
 
-            # commande proportionnelle
-            e = sawtooth(thetabar-heading)
-            u_right = int(0.5*v_obj*(1 + Boat.k*e))
-            u_left = int(0.5*v_obj*(1 - Boat.k*e))
-            self.motors.command(u_left, u_right)
-            time.sleep(0.2)
+
 
     def follow_line_heading(self, pointB, vmin, vmax):
 
