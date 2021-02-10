@@ -92,7 +92,7 @@ def doGoNorth():
         
         # Guide block
         heading_obj = 0
-        v_obj = 120
+        v_obj = 40
         t = time.time()
         
         #Control block
@@ -102,6 +102,9 @@ def doGoNorth():
         boat.motors.command(u_L, u_R)
         X = boat.compass.read_sensor_values().flatten().reshape((3, 1))
         
+        with open("test_heading_following.csv", "a") as f:
+            f.write(str(t) + "," + str(heading) + "," + str(u_L) + "," + str(u_R) + "\n")
+    
     event = "stop"
     print("Stop following North")
     return event
