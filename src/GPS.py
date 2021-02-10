@@ -14,10 +14,16 @@ def convert_DDmm_to_rad(lx, ly):
     return lx, ly
 
 
+def convert_longlat_to_rad(lx, ly):
+    lx = np.pi*lx/180
+    ly = np.pi*ly/180
+    return lx, ly
+
+
 class GPS:
     rho = 6371000  # earth radius
     # precision de 1.9m au bout du ponton
-    lx0, ly0 = convert_DDmm_to_rad(48.19906500, -3.01473333)
+    lx0, ly0 = convert_longlat_to_rad(48.19906500, -3.01473333)
     file_name = "GPS_traceback.csv"
 
     def __init__(self):

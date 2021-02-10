@@ -3,7 +3,7 @@ import fsm
 import numpy as np
 import sys
 import Boat
-from GPS import convert_DDmm_to_rad
+from GPS import convert_longlat_to_rad
 
 
 remaining_points = []
@@ -47,9 +47,9 @@ def doTriangle():
     y_2 = -3.016188
     x_3 = 48.200187
     y_3 = -3.015764
-    x_1, y_1 = convert_DDmm_to_rad(x_1, y_1)
-    x_2, y_2 = convert_DDmm_to_rad(x_2, y_2)
-    x_3, y_3 = convert_DDmm_to_rad(x_3, y_3)
+    x_1, y_1 = convert_longlat_to_rad(x_1, y_1)
+    x_2, y_2 = convert_longlat_to_rad(x_2, y_2)
+    x_3, y_3 = convert_longlat_to_rad(x_3, y_3)
     print("A : x=", x_1, " y=", y_1)
     print("B : x=", x_2, " y=", y_2)
     print("C : x=", x_3, " y=", y_3)
