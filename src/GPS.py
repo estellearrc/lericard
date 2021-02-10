@@ -22,9 +22,9 @@ class GPS:
         # divide by 100 to be in degrees
         # ly = pi*(DD+mm.mm/60)/100
         DDx = int(data[0]/100)
-        data[0] = np.pi*(DDx + (data[0]-DDx)/60)  # North
+        data[0] = np.pi*(DDx + (data[0]-DDx*100)/60)/180  # North
         DDy = int(data[2]/100)
-        data[2] = -np.pi*(DDy + (data[2]-DDy)/60)  # West = -Est
+        data[2] = -np.pi*(DDy + (data[2]-DDy*100)/60)/180  # West = -Est
         self.write_coordinates(data[0], data[2])
         return data
 

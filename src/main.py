@@ -69,6 +69,9 @@ def doTriangle():
         
         # Guide block
         heading_obj = boat.compute_heading(target_point)
+        print("obj : ", heading_obj)
+        print("heading : ", heading)
+        
         v_obj = 120
         
         # Control block
@@ -91,8 +94,8 @@ def doGoNorth():
         heading = boat.compass.compute_heading(X[0, 0], X[1, 0])
         
         # Guide block
-        heading_obj = 0
-        v_obj = 40
+        heading_obj = np.pi/2
+        v_obj = 160
         t = time.time()
         
         #Control block
@@ -100,6 +103,7 @@ def doGoNorth():
         
         # DDBoat command
         boat.motors.command(u_L, u_R)
+        # boat.motors.command(40, 40)
         X = boat.compass.read_sensor_values().flatten().reshape((3, 1))
         
         with open("test_heading_following.csv", "a") as f:

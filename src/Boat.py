@@ -3,6 +3,7 @@ from numpy.linalg import norm, det
 from Compass import *
 from Motors import *
 from GPS import *
+from AcceleroGyro import *
 import smbus
 import time
 
@@ -12,10 +13,15 @@ def sawtooth(x):
 
 
 class Boat:
-    k = 0.1/np.pi
+    Kp = 1
+    Kd = 0
     lx_home = 48.199129
     ly_home = -3.014017
+<<<<<<< HEAD
     coef_left_motor = 1
+=======
+    coef_left_motor = 1.4
+>>>>>>> 839e8fa70a155a3307c69cb0c8da74012f0734ce
 
     def __init__(self):
         # Compass calibration
@@ -34,11 +40,13 @@ class Boat:
         self.compass = Compass(self.bus, x1, x_1, x2, x3)
         self.motors = Motors()
         self.gps = GPS()
+        self.last_error = 0
 
     def follow_heading(self, heading, heading_obj, v_obj):
         """Returns motors commands from an heading to follow"""
-        
+
         # increase the range of the bearing angle
+<<<<<<< HEAD
         e = 0.2*(heading_obj - heading)
         u = self.motors.compute_command(e)
         print("error: ",e)
@@ -47,6 +55,22 @@ class Boat:
         u_right = v_obj*u[1, 0]  # command right motor
         print("uleft = ", u_left)
         print("uright = ", u_right)
+=======
+        e = 0.35*(heading_obj - heading)
+
+        M = np.array([[1, -1], [1, 1]])
+        b = np.array([[Boat.Kp*sawtooth(e) - Boat.Kd *
+                       (sawtooth(e) - sawtooth(self.last_error))], [1]])
+        M_1 = np.linalg.pinv(M)  # resolution of the system
+        u = M_1.dot(b)  # command motor array
+
+        u_left = v_obj*Boat.coef_left_motor*u[0, 0]
+        u_right = v_obj*u[1, 0]  # command right motor
+        print("e=", e)
+
+        self.last_error = e
+
+>>>>>>> 839e8fa70a155a3307c69cb0c8da74012f0734ce
         return u_left, u_right
 
     def follow_line_potential(self, b):
@@ -129,6 +153,7 @@ class Boat:
         """ Return heading to go to target point
         target_point array"""
         actual_pos = self.gps.read_cart_coord()
+        print('gps : ', actual_pos)
         return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
 
     def back_to_home(self):
