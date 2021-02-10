@@ -54,8 +54,8 @@ def test():
     while True:
         data = gps.read_sensor_values()
         print("[long, lat] = [{}, {}]".format(data[0], data[2]))
-        gps.convert_to_cart_coord(data)
-        print("[xtilde, ytilde] = [{}, {}]".format(data[0, 0], data[1, 0]))
+        p = gps.convert_to_cart_coord(data)
+        print("[xtilde, ytilde] = [{}, {}]".format(p[0, 0], p[1, 0]))
         time.sleep(0.1)
 
 
