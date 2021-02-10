@@ -14,8 +14,7 @@ def sawtooth(x):
 
 class Boat:
     Kp = 1
-    lx_home = 48.199129
-    ly_home = -3.014017
+    lx_home, ly_home = convert_DDmm_to_rad(48.199129, -3.014017)
     coef_left_motor = 1.4
 
     def __init__(self):
@@ -126,9 +125,10 @@ class Boat:
     def compute_heading(self, target_point):
         """ Return heading to go to target point
         target_point array"""
-        actual_pos = self.gps.read_cart_coord()
-        print('gps : ', actual_pos)
-        return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
+        data = self.gps.read_sensor_values()
+        actual_x, actual_y = self.gps.convert_to_cart_coord(data)
+        print('gps : ', actual_x, actual_y)
+        return np.arctan2(target_point[1, 0]-actual_y, target_point[0, 0]-actual_x)
 
     def back_to_home(self):
         """Bring back the DDBoat home"""

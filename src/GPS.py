@@ -4,11 +4,20 @@ from math import cos, sin
 import time
 
 
+def convert_DDmm_to_rad(lx, ly):
+    DDx = int(lx/100)
+    # North  / longitude in radian
+    lx = np.pi*(DDx + (lx-DDx*100)/60) / 180
+    DDy = int(ly/100)
+    # West = -Est / latitude in radian
+    ly = -np.pi*(DDy + (ly-DDy*100)/60)/180
+    return lx, ly
+
+
 class GPS:
     rho = 6371000  # earth radius
     # precision de 1.9m au bout du ponton
-    lx0 = 48.19906500
-    ly0 = -3.01473333
+    lx0, ly0 = convert_DDmm_to_rad(48.19906500, -3.01473333)
     file_name = "GPS_traceback.csv"
 
     def __init__(self):
@@ -21,26 +30,18 @@ class GPS:
         data = gpsdrv.read_gll(self.gps_com)
         # divide by 100 to be in degrees
         # ly = pi*(DD+mm.mm/60)/100
-        DDx = int(data[0]/100)
-        data[0] = np.pi*(DDx + (data[0]-DDx*100)/60)/180  # North
-        DDy = int(data[2]/100)
-        data[2] = -np.pi*(DDy + (data[2]-DDy*100)/60)/180  # West = -Est
         self.write_coordinates(data[0], data[2])
         return data
 
     def destroy(self):
         gpsdrv.close(self.gps_com)
 
-    def convert_to_cart_coord(self, lx, ly):
+    def convert_to_cart_coord(self, data):
+        lx, ly = convert_DDmm_to_rad(data[0], data[2])
+        t = data[4]
         x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
         y_tilde = GPS.rho*(ly-GPS.ly0)
-        return np.array([[x_tilde], [y_tilde]])
-
-    def read_cart_coord(self):
-        data_array = self.read_sensor_values()
-        lx = data_array[0]  # North / longitude
-        ly = data_array[2]  # West / latitude
-        return self.convert_to_cart_coord(lx, ly)
+        return np.array([[x_tilde], [y_tilde], [t]])
 
     def write_coordinates(self, lon, lat):
         with open(GPS.file_name, "a") as f:
@@ -53,8 +54,8 @@ def test():
     while True:
         data = gps.read_sensor_values()
         print("[long, lat] = [{}, {}]".format(data[0], data[2]))
-        data = gps.read_cart_coord()
-        # print("[xtilde, ytilde] = [{}, {}]".format(data[0, 0], data[1, 0]))
+        p = gps.convert_to_cart_coord(data)
+        print("[xtilde, ytilde] = [{}, {}]".format(p[0, 0], p[1, 0]))
         time.sleep(0.1)
 
 
