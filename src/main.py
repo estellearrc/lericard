@@ -15,7 +15,7 @@ def doWait():
 
 
 def doMainMenu():
-    print(" Go North [1] \n Do a triangle [2] \n Leave [3]")
+    print(" Go North [1] \n Do a triangle [2] \n Going to a point in duration [3] \n Leave [4]")
     a = input()
     try:
         int(a)
@@ -33,6 +33,9 @@ def doMainMenu():
         return event
     elif int(a) == 3:
         event = 'timedline'
+        return event
+    elif int(a) == 4:
+        event = 'stop'
         return event
     else:
         print("Unknown command")
@@ -147,6 +150,10 @@ def doGoPointInTime():
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
         data = boat.GPS.read_sensor_values()
         p = boat.GPS.convert_to_coordinates(data)
+    
+    event = "stop"
+    print("Arrived !")
+    return event
     
 
 
