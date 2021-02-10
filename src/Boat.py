@@ -14,7 +14,7 @@ def sawtooth(x):
 
 class Boat:
     Kp = 1
-    lx_home, ly_home = convert_DDmm_to_rad(48.199129, -3.014017)
+    lx_home, ly_home = convert_longlat_to_rad(48.199129, -3.014017)
     coef_left_motor = 1.4
 
     def __init__(self):
@@ -44,6 +44,7 @@ class Boat:
 
         M = np.array([[1, -1], [1, 1]])
         b = np.array([[(sawtooth(e))], [1]])
+
         M_1 = np.linalg.pinv(M)  # resolution of the system
         u = M_1.dot(b)  # command motor array
 
@@ -119,7 +120,10 @@ class Boat:
         point is a 2d-array"""
         data = self.gps.read_sensor_values()
         xy_tilde = self.gps.convert_to_cart_coord(data)
-        return norm(point-xy_tilde[0:2]) <= 1
+        dist = norm(point-xy_tilde[0:2])
+        print("dist pos to target point = ", dist)
+        return dist <= 1
+
 
     def compute_heading(self, target_point):
         """ Return heading to go to target point

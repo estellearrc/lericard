@@ -10,7 +10,7 @@ def convert_DDmm_to_rad(lx, ly):
     lx = np.pi*(DDx + (lx-DDx*100)/60) / 180
     DDy = int(ly/100)
     # West = -Est / latitude in radian
-    ly = -np.pi*(DDy + (ly-DDy*100)/60)/180
+    ly = -np.pi*(DDy + (ly-DDy*100)/60) / 180
     return lx, ly
 
 
@@ -20,10 +20,17 @@ def convert_longlat_to_rad(lx, ly):
     return lx, ly
 
 
+# def convert_rad_to_cart(lx, ly):
+#     x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
+#     y_tilde = GPS.rho*(ly-GPS.ly0)
+#     return x_tilde, y_tilde
+
+
 class GPS:
-    rho = 6371000  # earth radius
+    rho = 6371000  # earth radius in meters
     # precision de 1.9m au bout du ponton
-    lx0, ly0 = convert_longlat_to_rad(48.19906500, -3.01473333)
+    # lx0, ly0 = convert_longlat_to_rad(48.19906500, -3.01473333)
+    lx0, ly0 = convert_DDmm_to_rad(4811.9447, 300.8921)
     file_name = "GPS_traceback.csv"
 
     def __init__(self):
@@ -36,7 +43,7 @@ class GPS:
         data = gpsdrv.read_gll(self.gps_com)
         # divide by 100 to be in degrees
         # ly = pi*(DD+mm.mm/60)/100
-        self.write_coordinates(data[0], data[2])
+        self.write_coordinates(data[4], data[0], data[2])
         return data
 
     def destroy(self):
@@ -47,11 +54,12 @@ class GPS:
         t = data[4]
         x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
         y_tilde = GPS.rho*(ly-GPS.ly0)
+        self.write_coordinates(t, x_tilde, y_tilde)
         return np.array([[x_tilde], [y_tilde], [t]])
 
-    def write_coordinates(self, lon, lat):
+    def write_coordinates(self, t, lon, lat):
         with open(GPS.file_name, "a") as f:
-            f.write(str(lon) + "," + str(lat) + "\n")
+            f.write(str(t) + "," + str(lon) + "," + str(lat) + "\n")
 
 
 def test():
