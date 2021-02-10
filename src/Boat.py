@@ -54,39 +54,26 @@ class Boat:
         print("e=", e)
         return u_left, u_right
 
-    def follow_line_potential(self,t0,d,p,b,heading,t,a):
+    def follow_line_potential(self,a, b, t, t0, p):
         """
         Return motos commands from a direction vector
-        t0: departure time
-        d:  direction of vector ab -->(b-a)/norm(b-a)
-        p: boat postion array([[x],[y]])
-        b: target point
-        rq: while norm(p - b) > 1:  # while the boat hasn't reached point b
-        heading : current heading of the boat
-        t: current time
         a: departure point
+        b: target point
+        t: current time
+        t0: departure time
+        p: boat postion array([[x],[y]])
         """
-        v0 = 100*d
+        d = (b-a)/norm(b-a)
+        v0 = 100*d # Arbitraire -> a adapter
         n = np.array([[-d[1, 0]], [d[0, 0]]])  # normal vector of the line ab
         # moving attractive point
         phat = a + v0*(t-t0)
         # vector field
-        w = -n@n.T@(p-a)+v0+0.1*(p-phat)
+        w = -n @ n.T @ (p-a) + v0 + 0.1*(p-phat)
         v_obj = norm(w)
-        thetabar = np.arctan2(w[1, 0], w[0, 0])
-        # commande proportionnelle
-        e = sawtooth(thetabar-heading)
-        # Compute motor commande
-        M = np.array([[1, -1], [1, 1]])
-        b = np.array([[Boat.Kp*sawtooth(e)
-                       (sawtooth(e) - sawtooth(self.last_error))], [1]])
-        M_1 = np.linalg.pinv(M)  # resolution of the system
-        u = M_1.dot(b)  # command motor array
-        u_left = v_obj*Boat.coef_left_motor*u[0, 0]
-        u_right = v_obj*u[1, 0]  # command right motor
-        print("e=", e)
-        return u_left, u_right
-
+        theta_obj = np.arctan2(w[1, 0], w[0, 0])
+        
+        return theta_obj, v_obj
 
 
     def follow_line_heading(self, pointB, vmin, vmax):
