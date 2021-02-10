@@ -16,7 +16,8 @@ def doWait():
 
 
 def doMainMenu():
-    print(" Go North [1] \n Do a triangle [2] \n Going to a point in duration [3] \n Leave [4]")
+    print(
+        " Go North [1] \n Do a triangle [2] \n Going to a point in duration [3] \n Leave [4]")
     a = input()
     try:
         int(a)
@@ -47,15 +48,20 @@ def doMainMenu():
 def doTriangle():
     global remaining_points
     print("Points to follow : ")
-    x_1 = 48.199482
-    y_1 = -3.014891
+    # x_1 = 48.199482
+    # y_1 = -3.014891
+    x_1 = 48.198971
+    y_1 = -3.014399
     x_2 = 48.199295
     y_2 = -3.016188
     x_3 = 48.200187
     y_3 = -3.015764
     x_1, y_1 = convert_longlat_to_rad(x_1, y_1)
+    # x_1, y_1 = boat.gps.convert_rad_to_cart(x_1, y_1)
     x_2, y_2 = convert_longlat_to_rad(x_2, y_2)
+    # x_2, y_2 = boat.gps.convert_rad_to_cart(x_2, y_2)
     x_3, y_3 = convert_longlat_to_rad(x_3, y_3)
+    # x_3, y_3 = boat.gps.convert_rad_to_cart(x_3, y_3)
     print("A : x=", x_1, " y=", y_1)
     print("B : x=", x_2, " y=", y_2)
     print("C : x=", x_3, " y=", y_3)
@@ -67,7 +73,8 @@ def doTriangle():
 
     while len(remaining_points) > 0:
         # Nav block
-        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        heading = boat.compass.compute_heading(
+            mag_field[0, 0], mag_field[1, 0])
         if boat.reach_point(target_point):
             x_target, y_target = remaining_points.pop(0)
             target_point = np.array([[x_target], [y_target]])
@@ -78,7 +85,7 @@ def doTriangle():
         print("obj : ", heading_obj)
         print("heading : ", heading)
 
-        v_obj = 120
+        v_obj = 50
 
         # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
@@ -97,8 +104,9 @@ def doGoNorth():
     t = time.time()
     while t - t0 < 1000:
         # Nav block
-        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
-        
+        heading = boat.compass.compute_heading(
+            mag_field[0, 0], mag_field[1, 0])
+
         # Guide block
         heading_obj = np.pi/2
         v_obj = 160
@@ -119,8 +127,8 @@ def doGoNorth():
     event = "stop"
     print("Stop following North")
     return event
-    
-    
+
+
 def doGoPointInTime():
     print("Please enter the desired time (in seconds) :")
     input(t_total)
@@ -129,33 +137,34 @@ def doGoPointInTime():
     except:
         print("Unknown command")
         return 'wait'
-        
+
     x_1 = 48.199482
     y_1 = -3.014891
     target_point = boat.gps.convert_to_cart_coord(x_1, y_1)
     mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
-    
+
     while boat.reach_point(target_point) == False:
         # Nav block
-        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
-        
+        heading = boat.compass.compute_heading(
+            mag_field[0, 0], mag_field[1, 0])
+
         # Guide block
         t = time.time()
-        heading_obj, v_obj = boat.follow_line_potential(a, target_point, t, t0, p)
-        
-        #Control block
+        heading_obj, v_obj = boat.follow_line_potential(
+            a, target_point, t, t0, p)
+
+        # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
-        
+
         # DDBoat command
         boat.motors.command(u_L, u_R)
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
         data = boat.GPS.read_sensor_values()
         p = boat.GPS.convert_to_coordinates(data)
-    
+
     event = "stop"
     print("Arrived !")
     return event
-    
 
 
 def doStop():
