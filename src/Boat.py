@@ -3,6 +3,7 @@ from numpy.linalg import norm, det
 from Compass import *
 from Motors import *
 from GPS import *
+from AcceleroGyro import *
 import smbus
 import time
 
@@ -33,6 +34,7 @@ class Boat:
         self.compass = Compass(self.bus, x1, x_1, x2, x3)
         self.motors = Motors()
         self.gps = GPS()
+        self.accelero_gyro = AcceleroGyro(self.bus)
 
     def follow_heading(self, target_point, vbar, f_stop, arg):
         """heading_obj instruction
@@ -52,10 +54,14 @@ class Boat:
             print("compass : ", heading)
 
             # increase the range of the gisement angle
-            e = 0.35*(heading_obj - heading)
+            # if e > 0.2:
+            e = 0.2*(heading_obj - heading)
+            # e = 2*np.arctan(0.35*(heading_obj - heading))/np.pi
+            print(e)
             u = self.motors.compute_command(e)
 
-            coef_left_motor = 1.25
+            coef_left_motor = 1
+            coef_right_motor = 1
             u_left = vbar*coef_left_motor*u[0, 0]
             u_right = vbar*u[1, 0]  # command right motor
             print("uleft = ", u_left)
