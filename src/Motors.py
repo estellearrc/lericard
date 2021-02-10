@@ -25,14 +25,6 @@ class Motors:
     def stop(self):
         ardudrv.send_arduino_cmd_motor(self.serial_arduino, 0, 0)
 
-    def compute_command(self, e):
-        # linearization loop
-        M = np.array([[1, -1], [1, 1]])
-        b = np.array([[sawtooth(e)], [1]])
-        M_1 = np.linalg.pinv(M)  # resolution of the system
-        u = M_1.dot(b)  # command motor array
-        return u
-
 
 def test():
     """ Try command motors """

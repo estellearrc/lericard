@@ -13,9 +13,11 @@ def sawtooth(x):
 
 
 class Boat:
-    k = 0.1/np.pi
+    Kp = 1
+    Kd = 0
     lx_home = 48.199129
     ly_home = -3.014017
+    coef_left_motor = 1.4
 
     def __init__(self):
         # Compass calibration
@@ -34,39 +36,27 @@ class Boat:
         self.compass = Compass(self.bus, x1, x_1, x2, x3)
         self.motors = Motors()
         self.gps = GPS()
-        self.accelero_gyro = AcceleroGyro(self.bus)
+        self.last_error = 0
 
-    def follow_heading(self, target_point, vbar, f_stop, arg):
-        """heading_obj instruction
-        vmin minimum speed
-        vmax maximum speed
-        f_stop stopping condition
-        arg argument of f_stop """
+    def follow_heading(self, heading, heading_obj, v_obj):
+        """Returns motors commands from an heading to follow"""
 
-        while f_stop(arg):
-            #heading_obj = self.compute_heading(target_point)
-            heading_obj = 0
+        # increase the range of the bearing angle
+        e = 0.35*(heading_obj - heading)
 
-            vx, vy, vz = self.compass.read_sensor_values().flatten()
-            X = np.array([vx, vy, vz]).reshape((3, 1))
+        M = np.array([[1, -1], [1, 1]])
+        b = np.array([[Boat.Kp*sawtooth(e) - Boat.Kd *
+                       (sawtooth(e) - sawtooth(self.last_error))], [1]])
+        M_1 = np.linalg.pinv(M)  # resolution of the system
+        u = M_1.dot(b)  # command motor array
 
-            heading = self.compass.compute_heading(X[0, 0], X[1, 0])
-            print("compass : ", heading)
+        u_left = v_obj*Boat.coef_left_motor*u[0, 0]
+        u_right = v_obj*u[1, 0]  # command right motor
+        print("e=", e)
 
-            # increase the range of the gisement angle
-            # if e > 0.2:
-            e = 0.2*(heading_obj - heading)
-            # e = 2*np.arctan(0.35*(heading_obj - heading))/np.pi
-            print(e)
-            u = self.motors.compute_command(e)
+        self.last_error = e
 
-            coef_left_motor = 1
-            coef_right_motor = 1
-            u_left = vbar*coef_left_motor*u[0, 0]
-            u_right = vbar*u[1, 0]  # command right motor
-            print("uleft = ", u_left)
-            print("uright = ", u_right)
-            self.motors.command(u_left, u_right)
+        return u_left, u_right
 
     def follow_line_potential(self, b):
         gpgll_a = self.gps.read_sensor_values()
@@ -87,13 +77,13 @@ class Boat:
             phat = a + v0*(t-t0)
             # vector field
             w = -n@n.T@(p-a)+v0+0.1*(p-phat)
-            vbar = norm(w)
+            v_obj = norm(w)
             thetabar = np.arctan2(w[1, 0], w[0, 0])
 
             # commande proportionnelle
             e = sawtooth(thetabar-heading)
-            u_right = int(0.5*vbar*(1 + Boat.k*e))
-            u_left = int(0.5*vbar*(1 - Boat.k*e))
+            u_right = int(0.5*v_obj*(1 + Boat.k*e))
+            u_left = int(0.5*v_obj*(1 - Boat.k*e))
             self.motors.command(u_left, u_right)
             time.sleep(0.2)
 
@@ -142,12 +132,13 @@ class Boat:
         """Return false when a certain point has been reached
         point is a 2d-array"""
         xy_tilde = self.gps.read_cart_coord()
-        return norm(point-xy_tilde) >= 1
+        return norm(point-xy_tilde) <= 1
 
     def compute_heading(self, target_point):
         """ Return heading to go to target point
         target_point array"""
         actual_pos = self.gps.read_cart_coord()
+        print('gps : ', actual_pos)
         return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
 
     def back_to_home(self):
