@@ -43,8 +43,7 @@ class Boat:
         e = 0.35*(heading_obj - heading)
 
         M = np.array([[1, -1], [1, 1]])
-        b = np.array([[Boat.Kp*sawtooth(e)
-                       (sawtooth(e) - sawtooth(self.last_error))], [1]])
+        b = np.array([[(sawtooth(e))], [1]])
         M_1 = np.linalg.pinv(M)  # resolution of the system
         u = M_1.dot(b)  # command motor array
 
@@ -120,7 +119,7 @@ class Boat:
         point is a 2d-array"""
         data = self.gps.read_sensor_values()
         xy_tilde = self.gps.convert_to_cart_coord(data)
-        return norm(point-xy_tilde) <= 1
+        return norm(point-xy_tilde[0:2]) <= 1
 
     def compute_heading(self, target_point):
         """ Return heading to go to target point

@@ -78,7 +78,7 @@ def doTriangle():
         print("obj : ", heading_obj)
         print("heading : ", heading)
 
-        v_obj = 120
+        v_obj = 40
 
         # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
@@ -170,21 +170,21 @@ if __name__ == "__main__":
     f.load_fsm_from_file("fsm_boat_cmd.txt")
     run = True
     while run:
-        try:
-            funct = f.run()
-            if f.curState != f.endState:
-                newEvent = funct()
-                if newEvent is None:
-                    break
-                else:
-                    f.set_event(newEvent)
+        #try:
+        funct = f.run()
+        if f.curState != f.endState:
+            newEvent = funct()
+            if newEvent is None:
+                break
             else:
-                funct()
-                run = False
-        except:
-            print("I'm coming home bitches!")
+                f.set_event(newEvent)
+        else:
+            funct()
+            run = False
+        #except:
+         #   print("I'm coming home bitches!")
             # boat = Boat.Boat()
-            boat.back_to_home()
-            boat.stop()
+          #  boat.back_to_home()
+           # boat.stop()
 else:
     boat = Boat.Boat()
