@@ -92,7 +92,7 @@ def doGoNorth():
         
         # Guide block
         heading_obj = 0
-        v_obj = 120
+        v_obj = 40
         t = time.time()
         
         #Control block
