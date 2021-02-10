@@ -52,12 +52,14 @@ class Boat:
             print("compass : ", heading)
 
             # increase the range of the gisement angle
-            e = 0.5*(heading_obj - heading)
-            u = np.abs(self.motors.compute_command(e))
+            e = 0.35*(heading_obj - heading)
+            u = self.motors.compute_command(e)
 
-            coef_left_motor = 1.5
+            coef_left_motor = 1.25
             u_left = vbar*coef_left_motor*u[0, 0]
             u_right = vbar*u[1, 0]  # command right motor
+            print("uleft = ", u_left)
+            print("uright = ", u_right)
             self.motors.command(u_left, u_right)
 
     def follow_line_potential(self, b):
@@ -146,7 +148,7 @@ class Boat:
         """Bring back the DDBoat home"""
         home = np.array([[Boat.lx_home], [Boat.ly_home]])
         heading = self.compute_heading(home)
-        self.follow_heading(heading, 80, 120, self.reach_point, home)
+        self.follow_heading(heading, 100, self.reach_point, home)
 
 
 def test():
