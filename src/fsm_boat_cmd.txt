@@ -1,22 +1,23 @@
 ----- States
 Idle
 Menu
-TriangleInit
-FollowHeading
+Triangle
+North
 End
 ----- Transitions
 Idle Idle wait main.doWait
 Idle Menu go main.doMainMenu
 Menu Idle wait main.doWait
-Menu TriangleInit triangle main.doTriangleInitialize
-TriangleInit FollowHeading go main.doFollowHeading
-FollowHeading FollowHeading go main.doFollowHeading
-FollowHeading Idle stop main.doWait
+Menu Triangle triangle main.doTriangle
+Menu North north main.doGoNorth
+Triangle Idle stop main.doWait
+North Idle stop main.doWait
 Menu End stop main.doStop
 ----- Events
 wait
 go
 triangle
+north
 stop
 ---- Start State
 Idle

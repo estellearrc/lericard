@@ -15,28 +15,29 @@ def doWait():
 
 
 def doMainMenu():
-    print(" Do a triangle [1] \n Leave [2]")
+    print(" Go North [1] \n Do a triangle [2] \n Leave [3]")
     a = input()
     try:
         int(a)
     except:
-        print("Non reconnu")
+        print("Unknown command")
         event = 'wait'
         return event
     if int(a) == 1:
+        event = 'north'
+        print("Going North ...")
+        return event
+    elif int(a) == 2:
         event = 'triangle'
         print("Initializing triangle mode ...")
         return event
-    elif int(a) == 2:
-        event = 'stop'
-        return event
     else:
-        print("Non reconnu")
+        print("Unknown command")
         event = 'wait'
         return event
 
 
-def doTriangleInitialize():
+def doTriangle():
     global remaining_points
     print("Points to follow : ")
     x_1 = 48.199482
@@ -53,23 +54,56 @@ def doTriangleInitialize():
     print("C : x=", x_3, " y=", y_3)
     remaining_points = [(X1[0, 0], X1[1, 0]), (X2[0, 0], X2[1, 0]),
                         (X3[0, 0], X3[1, 0]), (X1[0, 0], X1[1, 0])]
-    return "go"
+    x_target, y_target = remaining_points.pop(0)
+    target_point = np.array([[x_target], [y_target]])
+    print("Going to point x=", x_target, " y=", y_target)
+    X = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+
+    while len(remaining_points) > 0:
+        # Nav block
+        heading = boat.compass.compute_heading(X[0, 0], X[1, 0])
+        if boat.reach_point(target_point):
+            x_target, y_target = remaining_points.pop(0)
+            target_point = np.array([[x_target], [y_target]])
+            print("Going to point x=", x_target, " y=", y_target)
+        
+        # Guide block
+        heading_obj = boat.compute_heading(target_point)
+        v_obj = 120
+        
+        # Control block
+        u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)      
+        
+        # DDBoat command
+        boat.motors.command(u_L, u_R)
+        X = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+    
+    print("End of the triangle ...")
+    return "stop"
 
 
-def doFollowHeading():
-    global remaining_points
-    if len(remaining_points) > 0:
-        x_target, y_target = remaining_points.pop(0)
-        target_point = np.array([[x_target], [y_target]])
-        print("Going to point x=", x_target, " y=", y_target)
-        boat.follow_heading(target_point, 120,
-                            boat.reach_point, target_point)
-        #boat.follow_line(self, pointA, pointB, 80, 120)
-        # boat.follow_line_potential(target_point)
-        event = "go"
-    else:
-        print("End of the triangle ...")
-        event = "stop"
+def doGoNorth():
+    X = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+    t0 = time.time()
+    t = time.time()
+    while t - t0 < 1000:
+        # Nav block
+        heading = boat.compass.compute_heading(X[0, 0], X[1, 0])
+        
+        # Guide block
+        heading_obj = 0
+        v_obj = 120
+        t = time.time()
+        
+        #Control block
+        u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        
+        # DDBoat command
+        boat.motors.command(u_L, u_R)
+        X = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+        
+    event = "stop"
+    print("Stop following North")
     return event
 
 

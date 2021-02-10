@@ -15,6 +15,7 @@ class Boat:
     k = 0.1/np.pi
     lx_home = 48.199129
     ly_home = -3.014017
+    coef_left_motor = 1.25
 
     def __init__(self):
         # Compass calibration
@@ -34,31 +35,19 @@ class Boat:
         self.motors = Motors()
         self.gps = GPS()
 
-    def follow_heading(self, heading_obj, v_obj, f_stop, arg):
-        """heading_obj instruction
-        vmin minimum speed
-        vmax maximum speed
-        f_stop stopping condition
-        arg argument of f_stop """
+    def follow_heading(self, heading, heading_obj, v_obj):
+        """Returns motors commands from an heading to follow"""
+        
+        # increase the range of the bearing angle
+        e = 0.35*(heading_obj - heading)
+        u = self.motors.compute_command(e)
 
-        while f_stop(arg):
-            #heading_obj = self.compute_heading(target_point)
-            heading_obj = 0
+        u_left = v_obj*Boat.coef_left_motor*u[0, 0]
+        u_right = v_obj*u[1, 0]  # command right motor
+        print("uleft = ", u_left)
+        print("uright = ", u_right)
 
-            vx, vy, vz = self.compass.read_sensor_values().flatten()
-            X = np.array([vx, vy, vz]).reshape((3, 1))
-
-            heading = self.compass.compute_heading(X[0, 0], X[1, 0])
-            print("compass : ", heading)
-
-            # increase the range of the bearing angle
-            e = 0.5*(heading_obj - heading)
-            u = np.abs(self.motors.compute_command(e))
-            
-            coef_left_motor = 1.5
-            u_left = v_obj*coef_left_motor*u[0, 0]
-            u_right = v_obj*u[1, 0]  # command right motor
-            self.motors.command(u_left, u_right)
+        return u_left, u_right
 
     def follow_line_potential(self, b):
         gpgll_a = self.gps.read_sensor_values()
@@ -134,7 +123,7 @@ class Boat:
         """Return false when a certain point has been reached
         point is a 2d-array"""
         xy_tilde = self.gps.read_cart_coord()
-        return norm(point-xy_tilde) >= 1
+        return norm(point-xy_tilde) <= 1
 
     def compute_heading(self, target_point):
         """ Return heading to go to target point
@@ -146,7 +135,7 @@ class Boat:
         """Bring back the DDBoat home"""
         home = np.array([[Boat.lx_home], [Boat.ly_home]])
         heading = self.compute_heading(home)
-        self.follow_heading(heading, 80, 120, self.reach_point, home)
+        self.follow_heading(heading, 100, self.reach_point, home)
 
 
 def test():
