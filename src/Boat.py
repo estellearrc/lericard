@@ -12,11 +12,11 @@ def sawtooth(x):
 
 
 class Boat:
-    Kp = 0.8
-    Kd = 0.4
+    Kp = 1
+    Kd = 0
     lx_home = 48.199129
     ly_home = -3.014017
-    coef_left_motor = 1.25
+    coef_left_motor = 1.4
 
     def __init__(self):
         # Compass calibration
@@ -44,14 +44,13 @@ class Boat:
         e = 0.35*(heading_obj - heading)
         
         M = np.array([[1, -1], [1, 1]])
-        b = np.array([[Boat.Kp*sawtooth(e) - Boat.Kd*sawtooth(self.last_error)], [1]])
+        b = np.array([[Boat.Kp*sawtooth(e) - Boat.Kd*(sawtooth(e) - sawtooth(self.last_error))], [1]])
         M_1 = np.linalg.pinv(M)  # resolution of the system
         u = M_1.dot(b)  # command motor array
 
         u_left = v_obj*Boat.coef_left_motor*u[0, 0]
         u_right = v_obj*u[1, 0]  # command right motor
-        print("uleft = ", u_left)
-        print("uright = ", u_right)
+        print("e=", e)
         
         self.last_error = e
 
@@ -137,6 +136,7 @@ class Boat:
         """ Return heading to go to target point
         target_point array"""
         actual_pos = self.gps.read_cart_coord()
+        print('gps : ', actual_pos)
         return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
 
     def back_to_home(self):
