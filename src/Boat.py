@@ -53,7 +53,7 @@ class Boat:
         print("e=", e)
         return u_left, u_right
 
-    def follow_line_potential(self,a, b, t, t0, p):
+    def follow_line_potential(self, a, b, t, t0, p):
         """
         Return motos commands from a direction vector
         a: departure point
@@ -63,7 +63,7 @@ class Boat:
         p: boat postion array([[x],[y]])
         """
         d = (b-a)/norm(b-a)
-        v0 = 100*d # Arbitraire -> a adapter
+        v0 = 100*d  # Arbitraire -> a adapter
         n = np.array([[-d[1, 0]], [d[0, 0]]])  # normal vector of the line ab
         # moving attractive point
         phat = a + v0*(t-t0)
@@ -71,64 +71,64 @@ class Boat:
         w = -n @ n.T @ (p-a) + v0 + 0.1*(p-phat)
         v_obj = norm(w)
         theta_obj = np.arctan2(w[1, 0], w[0, 0])
-        
+
         return theta_obj, v_obj
 
+    # def follow_line_heading(self, pointB, vmin, vmax):
 
-    def follow_line_heading(self, pointB, vmin, vmax):
+    #     pointA = self.gps.read_cart_coord()
+    #     # Starting point of the robot in the line following towards pointB
+    #     phi = np.arctan2(pointB[1, 0]-pointA[1, 0], pointB[0, 0]-pointA[0, 0])
 
-        pointA = self.gps.read_cart_coord()
-        # Starting point of the robot in the line following towards pointB
-        phi = np.arctan2(pointB[1, 0]-pointA[1, 0], pointB[0, 0]-pointA[0, 0])
+    #     while self.reach_point(pointB):
+    #         x = self.gps.read_cart_coord()
+    #         x = x.flatten()
+    #         mag_field = self.compass.read_sensor_values()
+    #         # boat actual heading
+    #         theta = self.compass.compute_heading(
+    #             mag_field[0, 0], mag_field[1, 0])
+    #         m = np.array([[x[0]], [x[1]]])  # position GPS (x,y)
+    #         # error to the following line
+    #         e_dist = det(
+    #             np.hstack(((pointB-pointA)/norm(pointA-pointB), m-pointA)))
+    #         # heading of the line to follow
 
-        while self.reach_point(pointB):
-            x = self.gps.read_cart_coord()
-            x = x.flatten()
-            mag_field = self.compass.read_sensor_values()
-            # boat actual heading
-            theta = self.compass.compute_heading(
-                mag_field[0, 0], mag_field[1, 0])
-            m = np.array([[x[0]], [x[1]]])  # position GPS (x,y)
-            # error to the following line
-            e_dist = det(
-                np.hstack(((pointB-pointA)/norm(pointA-pointB), m-pointA)))
-            # heading of the line to follow
+    #         if abs(e_dist) > self.gps.range:
+    #             if e_dist > 0:
+    #                 q = 1
+    #             else:
+    #                 q = -1
+    #             # q = sign(e_dist)
 
-            if abs(e_dist) > self.gps.range:
-                if e_dist > 0:
-                    q = 1
-                else:
-                    q = -1
-                # q = sign(e_dist)
+    #         theta_bar = phi - np.arctan(e_dist/self.gps.range)
 
-            theta_bar = phi - np.arctan(e_dist/self.gps.range)
+    #         e_heading = sawtooth(theta - theta_bar)
 
-            e_heading = sawtooth(theta - theta_bar)
+    #         v = ((abs(e_heading)*(vmax - vmin)) / np.pi) + vmin
 
-            v = ((abs(e_heading)*(vmax - vmin)) / np.pi) + vmin
-
-            if q > 0:
-                # Il faut peut etre intervertir
-                u_left = int(0.5*v*(1 + Boat.k*e_heading))
-                u_right = int(0.5*v*(1 - Boat.k*e_heading))
-            else:
-                u_right = int(0.5*v*(1 + Boat.k*e_heading))
-                u_left = int(0.5*v*(1 - Boat.k*e_heading))
-            self.motors.command(u_left, u_right)
+    #         if q > 0:
+    #             # Il faut peut etre intervertir
+    #             u_left = int(0.5*v*(1 + Boat.k*e_heading))
+    #             u_right = int(0.5*v*(1 - Boat.k*e_heading))
+    #         else:
+    #             u_right = int(0.5*v*(1 + Boat.k*e_heading))
+    #             u_left = int(0.5*v*(1 - Boat.k*e_heading))
+    #         self.motors.command(u_left, u_right)
 
     def reach_point(self, point):
         """Return false when a certain point has been reached
         point is a 2d-array"""
-        xy_tilde = self.gps.read_cart_coord()
+        data = self.gps.read_sensor_values()
+        xy_tilde = self.gps.convert_to_cart_coord(data)
         return norm(point-xy_tilde) <= 1
 
     def compute_heading(self, target_point):
         """ Return heading to go to target point
         target_point array"""
         data = self.gps.read_sensor_values()
-        actual_x, actual_y = self.gps.convert_to_cart_coord(data)
-        print('gps : ', actual_x, actual_y)
-        return np.arctan2(target_point[1, 0]-actual_y, target_point[0, 0]-actual_x)
+        actual_pos = self.gps.convert_to_cart_coord(data)
+        print('gps : ', actual_pos[0, 0], actual_pos[1, 0])
+        return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
 
     def back_to_home(self):
         """Bring back the DDBoat home"""
