@@ -1,7 +1,10 @@
 import numpy as np
 from numpy.linalg import norm, det
 import time
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except:
+    pass
 
 class Logs:
     def __init__(self, mission, *args):

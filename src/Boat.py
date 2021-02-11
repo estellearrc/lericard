@@ -125,11 +125,9 @@ class Boat:
         return dist <= 1
 
 
-    def compute_heading(self, target_point):
+    def compute_heading(self, target_point, actual_pos):
         """ Return heading to go to target point
         target_point array"""
-        data = self.gps.read_sensor_values()
-        actual_pos = self.gps.convert_to_cart_coord(data)
         print('gps : ', actual_pos[0, 0], actual_pos[1, 0])
         return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
 

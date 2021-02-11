@@ -47,7 +47,7 @@ def doMainMenu():
 
 
 def doTriangle():
-    logs = Logs.Logs('triangle', 'u_L', 'u_R', 'heading', 'heading_obj')
+    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading', 'heading_obj', 'pos_x', 'pos_y')
 
     global remaining_points
     print("Points to follow : ")
@@ -84,7 +84,14 @@ def doTriangle():
             print("Going to point x=", x_target, " y=", y_target)
 
         # Guide block
-        heading_obj = boat.compute_heading(target_point)
+        data = boat.gps.read_sensor_values()
+        actual_pos = boat.gps.convert_to_cart_coord(data)[0:2]
+        t = boat.gps.convert_to_cart_coord(data)[2, 0]
+        logs.update('t', t)
+        logs.update('pos_x', actual_pos[0, 0])
+        logs.update('pos_y', actual_pos[1, 0])
+        
+        heading_obj = boat.compute_heading(target_point, actual_pos)
         logs.update('heading_obj', heading_obj)
         print("obj : ", heading_obj)
         print("heading : ", heading)
@@ -100,6 +107,8 @@ def doTriangle():
         boat.motors.command(u_L, u_R)
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
+        logs.write_data()
+        
     print("End of the triangle ...")
     return "stop"
 
