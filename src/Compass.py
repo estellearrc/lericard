@@ -34,7 +34,11 @@ def convert(tab):
 class Compass:
     # 7 bit address (will be left shifted to add the read write bit)
     DEVICE_ADDRESS = 0x1e
+    CTRL_REG1 = 0x20
+    CTRL_REG2 = 0x21
     CTRL_REG3 = 0x22
+    CTRL_REG4 = 0x23
+    CTRL_REG5 = 0x24
     OUT_X_L = 0x28  # first data register to read
 
     def __init__(self, bus, x1, x_1, x2, x3):
@@ -45,8 +49,11 @@ class Compass:
 
         # Write a single register
         # Set continuous-conversion mode to (MD1=0,MD0=0)
-        self.bus.write_byte_data(
-            Compass.DEVICE_ADDRESS, Compass.CTRL_REG3, 0b00000000)
+        self.bus.write_byte_data(Compass.DEVICE_ADDRESS, Compass.CTRL_REG1, 0b01010000)
+        self.bus.write_byte_data(Compass.DEVICE_ADDRESS, Compass.CTRL_REG2, 0b00000000)
+        self.bus.write_byte_data(Compass.DEVICE_ADDRESS, Compass.CTRL_REG3, 0b00000001)
+        self.bus.write_byte_data(Compass.DEVICE_ADDRESS, Compass.CTRL_REG4, 0b00000000)
+        self.bus.write_byte_data(Compass.DEVICE_ADDRESS, Compass.CTRL_REG5, 0b00000000)
 
     def compute_calibration(self, x1, x_1, x2, x3):
         """ Compute A and b -> y = inv(A)@(x+b)

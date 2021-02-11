@@ -61,7 +61,7 @@ class Boat:
         a: departure point
         b: target point
         p: boat postion array([[x],[y]])
-        phat:moving attractive point a + v0*(t-t0)
+        phat: moving attractive point a + v0*(t-t0)
         v0: vitesse du point atractif   
         """
         d = (b-a)/norm(b-a)

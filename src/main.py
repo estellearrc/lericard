@@ -157,7 +157,10 @@ def doGoPointInTime():
 
     x_1 = 48.199482
     y_1 = -3.014891
-    t, target_point = boat.gps.convert_to_cart_coord(x_1, y_1)
+    t, pos_x, pos_y, v, heading = ### Fct GPS à appeler .flatten()
+    a = np.array([[pos_x], [pos_y]])
+    t0 = t
+    v0 = 140  # A adapter
     mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
     while boat.reach_point(target_point) == False:
@@ -166,9 +169,9 @@ def doGoPointInTime():
             mag_field[0, 0], mag_field[1, 0])
 
         # Guide block
-        t = time.time()
+        phat = a + v0*(t-t0)
         heading_obj, v_obj = boat.follow_line_potential(
-            a, target_point, t, t0, p)
+            a, target_point, p, phat, v0)
 
         # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
