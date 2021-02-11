@@ -2,7 +2,7 @@ import drivers.arduino_driver_py3 as ardudrv
 from time import time, sleep
 import numpy as np
 from Tools import init_motors, set_motor_speed, stop_motors
-from Drivers.encoders_driver_py3 import Encoders
+from drivers.encoders_driver_py3 import Encoders
 
 
 def sawtooth(x):
@@ -42,8 +42,8 @@ def test():
     #     motors.stop()
     speed0 = int(input("Speed ? --> "))
 
-    cmdl = 50
-    cmdr = 50
+    cmdl = 100
+    cmdr = 100
 
     t0 = time()
     while time() - t0 < 20:
