@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import norm, det
 import time
+import os
 try:
     import matplotlib.pyplot as plt
 except:
@@ -8,7 +9,7 @@ except:
 
 class Logs:
     def __init__(self, mission, *args):
-        self.file = "Logs_mission_" + str(time.time()) + ".csv"
+        self.file = os.getcwd() + "/logs/" + "Logs_mission_" + str(time.time()) + ".csv"
         self.__data_dic = {}
         self.keys_in_order = []
         with open(self.file, "w") as f:

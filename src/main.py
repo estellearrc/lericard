@@ -114,30 +114,31 @@ def doTriangle():
 
 
 def doGoNorth():
+    logs = Logs.Logs('goNorth', 'u_L', 'u_R', 'heading')
     mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
     t0 = time.time()
     t = time.time()
     while t - t0 < 1000:
         # Nav block
-        heading = boat.compass.compute_heading(
-            mag_field[0, 0], mag_field[1, 0])
+        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        logs.update("heading", heading)
 
         # Guide block
-        heading_obj = np.pi/2
-        v_obj = 160
+        heading_obj = 0
+        v_obj = 40
         t = time.time()
 
         # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        logs.update("u_L", u_L)
+        logs.update("u_R", u_R)
 
         # DDBoat command
         boat.motors.command(u_L, u_R)
         # boat.motors.command(40, 40)
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
-        with open("test_heading_following.csv", "a") as f:
-            f.write(str(t) + "," + str(heading) + "," +
-                    str(u_L) + "," + str(u_R) + "\n")
+        logs.write_data()
 
     event = "stop"
     print("Stop following North")
