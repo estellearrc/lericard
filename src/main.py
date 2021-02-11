@@ -3,6 +3,7 @@ import fsm
 import numpy as np
 import sys
 import Boat
+import Logs
 from GPS import convert_longlat_to_rad
 
 
@@ -46,6 +47,8 @@ def doMainMenu():
 
 
 def doTriangle():
+    logs = Logs.Logs('triangle', 'u_L', 'u_R', 'heading', 'heading_obj')
+
     global remaining_points
     print("Points to follow : ")
     # x_1 = 48.199482
@@ -73,8 +76,8 @@ def doTriangle():
 
     while len(remaining_points) > 0:
         # Nav block
-        heading = boat.compass.compute_heading(
-            mag_field[0, 0], mag_field[1, 0])
+        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        logs.update('heading', heading)
         if boat.reach_point(target_point):
             x_target, y_target = remaining_points.pop(0)
             target_point = np.array([[x_target], [y_target]])
@@ -82,6 +85,7 @@ def doTriangle():
 
         # Guide block
         heading_obj = boat.compute_heading(target_point)
+        logs.update('heading_obj', heading_obj)
         print("obj : ", heading_obj)
         print("heading : ", heading)
 
@@ -89,6 +93,8 @@ def doTriangle():
 
         # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        logs.update('u_L', u_L)
+        logs.update('u_R', u_R)
 
         # DDBoat command
         boat.motors.command(u_L, u_R)
