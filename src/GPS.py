@@ -64,7 +64,6 @@ class GPS:
         v = convert_knot_to_meterpersec(data[6])
         hd = convert_deg_to_rad(data[7])
         x_tilde, y_tilde = self.convert_rad_to_cart(lx, ly)
-        self.write_coordinates(t, x_tilde, y_tilde)
         return np.array([[t], [x_tilde], [y_tilde], [v], [hd]])
 
 
@@ -79,8 +78,8 @@ def test():
         p = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
         print("[xtilde, ytilde] = [{}, {}]".format(p[0, 0], p[1, 0]))
         log.update("t", state_vector[0, 0])
-        log.update("lat", state_vector[1, 0])
-        log.update("long", state_vector[2, 0])
+        log.update("x", state_vector[1, 0])
+        log.update("y", state_vector[2, 0])
         log.update("speed", state_vector[3, 0])
         log.update("heading", state_vector[4, 0])
         log.write_data()
