@@ -47,7 +47,8 @@ def doMainMenu():
 
 
 def doTriangle():
-    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading', 'heading_obj', 'pos_x', 'pos_y')
+    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading',
+                     'heading_obj', 'pos_x', 'pos_y')
 
     global remaining_points
     print("Points to follow : ")
@@ -76,7 +77,8 @@ def doTriangle():
 
     while len(remaining_points) > 0:
         # Nav block
-        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        heading = boat.compass.compute_heading(
+            mag_field[0, 0], mag_field[1, 0])
         logs.update('heading', heading)
         if boat.reach_point(target_point):
             x_target, y_target = remaining_points.pop(0)
@@ -85,12 +87,11 @@ def doTriangle():
 
         # Guide block
         data = boat.gps.read_sensor_values()
-        actual_pos = boat.gps.convert_to_cart_coord(data)[0:2]
-        t = boat.gps.convert_to_cart_coord(data)[2, 0]
+        t, actual_pos = boat.gps.convert_to_cart_coord(data)
         logs.update('t', t)
         logs.update('pos_x', actual_pos[0, 0])
         logs.update('pos_y', actual_pos[1, 0])
-        
+
         heading_obj = boat.compute_heading(target_point, actual_pos)
         logs.update('heading_obj', heading_obj)
         print("obj : ", heading_obj)
@@ -108,7 +109,7 @@ def doTriangle():
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
         logs.write_data()
-        
+
     print("End of the triangle ...")
     return "stop"
 
@@ -194,7 +195,7 @@ if __name__ == "__main__":
     f.load_fsm_from_file("fsm_boat_cmd.txt")
     run = True
     while run:
-        #try:
+        # try:
         funct = f.run()
         if f.curState != f.endState:
             newEvent = funct()
@@ -205,7 +206,7 @@ if __name__ == "__main__":
         else:
             funct()
             run = False
-        #except:
+        # except:
          #   print("I'm coming home bitches!")
             # boat = Boat.Boat()
           #  boat.back_to_home()
