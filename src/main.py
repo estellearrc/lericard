@@ -197,7 +197,7 @@ def doGoPointInTime():
 
     while boat.reach_point(target_point) == False:
         # Nav block
-        heading_gps = boat.compass.compute_heading(
+        heading_compass = boat.compass.compute_heading(
             mag_field[0, 0], mag_field[1, 0])
         logs.update("heading_gps", heading_gps)
 

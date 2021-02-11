@@ -43,6 +43,25 @@ class Boat:
 
         # increase the range of the bearing angle
         e = 0.35*(heading_obj - heading_gps)
+        
+        while abs(sawtooth(e)) > 1:
+            self.motors.stop()
+            headings = []
+            for k in range(5):
+                mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+                headings.append(boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0]))
+                time.sleep(0.2)
+            heading_compass = np.mean(np.array(headings))
+            e = 0.35*(heading_obj - heading_compass)
+            if e > 0:
+                self.motors.command(0, 150)
+                time.sleep(0.5)
+                self.motors.stop()
+            else:
+                self.motors.command(150, 0)
+                time.sleep(0.5)
+                self.motors.stop()
+            time.sleep(2)
 
         M = np.array([[Boat.coef_left_motor, -1], [Boat.coef_left_motor, 1]])
         b = np.array([[Boat.Kp*sawtooth(e)], [1]])
@@ -52,7 +71,6 @@ class Boat:
 
         u_left = v_obj*u[0, 0]
         u_right = v_obj*u[1, 0]  # command right motor
-        print("e=", e)
         return u_left, u_right
 
     def follow_line_potential(self, a, b, p, phat, v0):
