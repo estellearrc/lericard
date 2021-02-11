@@ -124,8 +124,8 @@ def doGoNorth():
             mag_field[0, 0], mag_field[1, 0])
 
         # Guide block
-        heading_obj = np.pi/2
-        v_obj = 160
+        heading_obj = 0
+        v_obj = 40
         t = time.time()
 
         # Control block
