@@ -87,7 +87,9 @@ def doTriangle():
 
         # Guide block
         data = boat.gps.read_sensor_values()
-        t, actual_pos = boat.gps.convert_to_cart_coord(data)
+        state_vector = boat.gps.convert_to_cart_coord(data)
+        actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
+        t = state_vector[0, 0]
         logs.update('t', t)
         logs.update('pos_x', actual_pos[0, 0])
         logs.update('pos_y', actual_pos[1, 0])
@@ -121,7 +123,8 @@ def doGoNorth():
     t = time.time()
     while t - t0 < 1000:
         # Nav block
-        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        heading = boat.compass.compute_heading(
+            mag_field[0, 0], mag_field[1, 0])
         logs.update("heading", heading)
 
         # Guide block

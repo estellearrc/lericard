@@ -34,9 +34,10 @@ class GPS:
         f.close()
 
     def read_sensor_values(self):
-        data = gpsdrv.read_gll(self.gps_com)
-        # divide by 100 to be in degrees
-        # ly = pi*(DD+mm.mm/60)/100
+        # data = gpsdrv.read_gll(self.gps_com)
+        data = gpsdrv.read_gprmc(self.gps_com)
+        print(data)
+        # [130648.0, 'A', 4811.9304, 'N', 300.8408, 'W', 0.0, 132.4, 0.0, 0.0, 0.0, 0.0, 'A*70']
         # self.write_coordinates(data[4], data[0], data[2])
         return data
 
@@ -49,11 +50,13 @@ class GPS:
         return x_tilde, y_tilde
 
     def convert_to_cart_coord(self, data):
-        lx, ly = convert_DDmm_to_rad(data[0], data[2])
-        t = data[4]
+        lx, ly = convert_DDmm_to_rad(data[2], data[4])
+        t = data[0]
+        v = data[6]
+        hd = data[7]
         x_tilde, y_tilde = self.convert_rad_to_cart(lx, ly)
         self.write_coordinates(t, x_tilde, y_tilde)
-        return t, np.array([[x_tilde], [y_tilde]])
+        return np.array([[t], [x_tilde], [y_tilde], [v], [hd]])
 
     def write_coordinates(self, t, lon, lat):
         with open(GPS.file_name, "a") as f:
@@ -65,8 +68,9 @@ def test():
     gps = GPS()
     while True:
         data = gps.read_sensor_values()
-        print("[long, lat] = [{}, {}]".format(data[0], data[2]))
-        t, p = gps.convert_to_cart_coord(data)
+        print("[lat, long] = [{}, {}]".format(data[2], data[4]))
+        state_vector = gps.convert_to_cart_coord(data)
+        p = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
         print("[xtilde, ytilde] = [{}, {}]".format(p[0, 0], p[1, 0]))
         time.sleep(0.1)
 
