@@ -36,19 +36,24 @@ def read_gprmc(ser, nmax=20):
     val = [0., 'A', 0., 'N', 0., 'W', 0., 0., 0., 0., 0., 0., 'A*70']
     for i in range(nmax):
         v = ser.readline().decode("utf-8")
-        print(v)
         if str(v[0:6]) == "$GPRMC":
             vv = v.split(",")
             if len(vv[1]) > 0:
                 val[0] = float(vv[1])  # time
             if len(vv[2]) > 0:
-                val[1] = float(vv[2])  # North = latitude
+                val[1] = vv[2]  # A
+            if len(vv[3]) > 0:
+                val[2] = float(vv[3])  # North = latitude
             if len(vv[4]) > 0:
-                val[3] = float(vv[4])  # West = longitude
-            if len(vv[4]) > 0:
-                val[3] = vv[4]
+                val[3] = vv[4]  # N
             if len(vv[5]) > 0:
-                val[4] = float(vv[5])
+                val[4] = float(vv[5])  # West = longitude
+            if len(vv[6]) > 0:
+                val[5] = vv[6]  # W
+            if len(vv[7]) > 0:
+                val[6] = float(vv[7])  # speed in knots 2.69 nd = 4.98 km/h
+            if len(vv[8]) > 0:
+                val[7] = float(vv[8])  # heading route in degrees (0 to 360)
             break
     return val
 

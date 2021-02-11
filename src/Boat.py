@@ -117,7 +117,8 @@ class Boat:
         """Return false when a certain point has been reached
         point is a 2d-array"""
         data = self.gps.read_sensor_values()
-        t, xy_tilde = self.gps.convert_to_cart_coord(data)
+        state_vector = self.gps.convert_to_cart_coord(data)
+        xy_tilde = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
         dist = norm(point-xy_tilde)
         print("dist pos to target point = ", dist)
         return dist <= 1
