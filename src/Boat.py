@@ -13,9 +13,9 @@ def sawtooth(x):
 
 
 class Boat:
-    Kp = 0.2
+    Kp = 0.6
     lx_home, ly_home = convert_longlat_to_rad(48.199129, -3.014017)
-    coef_left_motor = 1.4
+    coef_left_motor = 0.6
 
     def __init__(self):
         # Compass calibration
@@ -44,7 +44,7 @@ class Boat:
         # increase the range of the bearing angle
         e = 0.35*(heading_obj - heading)
 
-        M = np.array([[1, -1], [1, 1]])
+        M = np.array([[Boat.coef_left_motor, -1], [Boat.coef_left_motor, 1]])
         b = np.array([[Boat.Kp*sawtooth(e)], [1]])
 
         M_1 = np.linalg.pinv(M)  # resolution of the system
