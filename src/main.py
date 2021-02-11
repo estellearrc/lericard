@@ -57,11 +57,11 @@ def doTriangle():
     x_3 = 48.200187
     y_3 = -3.015764
     x_1, y_1 = convert_longlat_to_rad(x_1, y_1)
-    # x_1, y_1 = boat.gps.convert_rad_to_cart(x_1, y_1)
+    x_1, y_1 = boat.gps.convert_rad_to_cart(x_1, y_1)
     x_2, y_2 = convert_longlat_to_rad(x_2, y_2)
-    # x_2, y_2 = boat.gps.convert_rad_to_cart(x_2, y_2)
+    x_2, y_2 = boat.gps.convert_rad_to_cart(x_2, y_2)
     x_3, y_3 = convert_longlat_to_rad(x_3, y_3)
-    # x_3, y_3 = boat.gps.convert_rad_to_cart(x_3, y_3)
+    x_3, y_3 = boat.gps.convert_rad_to_cart(x_3, y_3)
     print("A : x=", x_1, " y=", y_1)
     print("B : x=", x_2, " y=", y_2)
     print("C : x=", x_3, " y=", y_3)
@@ -140,7 +140,7 @@ def doGoPointInTime():
 
     x_1 = 48.199482
     y_1 = -3.014891
-    target_point = boat.gps.convert_to_cart_coord(x_1, y_1)
+    t, target_point = boat.gps.convert_to_cart_coord(x_1, y_1)
     mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
     while boat.reach_point(target_point) == False:
