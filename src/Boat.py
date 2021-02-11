@@ -13,7 +13,7 @@ def sawtooth(x):
 
 
 class Boat:
-    Kp = 1
+    Kp = 0.2
     lx_home, ly_home = convert_longlat_to_rad(48.199129, -3.014017)
     coef_left_motor = 1.4
 
@@ -45,12 +45,12 @@ class Boat:
         e = 0.35*(heading_obj - heading)
 
         M = np.array([[1, -1], [1, 1]])
-        b = np.array([[(sawtooth(e))], [1]])
+        b = np.array([[Boat.Kp*sawtooth(e)], [1]])
 
         M_1 = np.linalg.pinv(M)  # resolution of the system
         u = M_1.dot(b)  # command motor array
 
-        u_left = v_obj*Boat.coef_left_motor*u[0, 0]
+        u_left = v_obj*u[0, 0]
         u_right = v_obj*u[1, 0]  # command right motor
         print("e=", e)
         return u_left, u_right
