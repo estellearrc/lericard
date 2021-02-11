@@ -110,7 +110,7 @@ def doTriangle():
         heading_obj = boat.compute_heading(target_point, actual_pos)
         logs.update('heading_obj', heading_obj)
 
-        v_obj = 40
+        v_obj = 100
 
         # Control block
         u_L, u_R = boat.follow_heading(heading_gps, heading_obj, v_obj)
@@ -151,7 +151,7 @@ def doGoNorth():
 
         # Guide block
         heading_obj = 0
-        v_obj = 70
+        v_obj = 100
 
         # Control block
         u_L, u_R = boat.follow_heading(heading_gps, heading_obj, v_obj)
