@@ -154,6 +154,7 @@ def doGoPointInTime():
     except:
         print("Unknown command")
         return 'wait'
+    logs = Logs.Logs('goPointInTime', 't', 'u_L', 'u_R', 'pos_x', 'pos_y', 'heading', 'heading_obj', 'v', 'v_obj')
 
     x_1 = 48.199482
     y_1 = -3.014891
@@ -167,20 +168,30 @@ def doGoPointInTime():
         # Nav block
         heading = boat.compass.compute_heading(
             mag_field[0, 0], mag_field[1, 0])
+        logs.update("heading", heading)
 
         # Guide block
         phat = a + v0*(t-t0)
         heading_obj, v_obj = boat.follow_line_potential(
             a, target_point, p, phat, v0)
+        logs.update("heading_obj", heading_obj)
+        logs.update("v_obj", v_obj)
 
         # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        logs.update("u_L", u_L)
+        logs.update("u_R", u_R)
 
         # DDBoat command
         boat.motors.command(u_L, u_R)
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
-        data = boat.GPS.read_sensor_values()
-        p = boat.GPS.convert_to_coordinates(data)
+        t, pos_x, pos_y, v, heading = ### Fct GPS à appeler .flatten()
+        p = np.array([[pos_x], [pos_y]])
+        logs.update("t", t)
+        logs.update("pos_x", pos_x)
+        logs.update("pos_y", pos_y)
+        logs.update("v", v)
+        logs.write_data()
 
     event = "stop"
     print("Arrived !")
