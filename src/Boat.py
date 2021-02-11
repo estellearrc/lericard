@@ -35,6 +35,8 @@ class Boat:
         self.motors = Motors()
         self.gps = GPS()
         self.last_error = 0
+        self.x_home, self.y_home = self.gps.convert_rad_to_cart(
+            Boat.lx_home, Boat.ly_home)
 
     def follow_heading(self, heading, heading_obj, v_obj):
         """Returns motors commands from an heading to follow"""
@@ -119,23 +121,20 @@ class Boat:
         """Return false when a certain point has been reached
         point is a 2d-array"""
         data = self.gps.read_sensor_values()
-        xy_tilde = self.gps.convert_to_cart_coord(data)
-        dist = norm(point-xy_tilde[0:2])
+        t, xy_tilde = self.gps.convert_to_cart_coord(data)
+        dist = norm(point-xy_tilde)
         print("dist pos to target point = ", dist)
         return dist <= 1
 
-
-    def compute_heading(self, target_point):
+    def compute_heading(self, target_point, actual_pos):
         """ Return heading to go to target point
         target_point array"""
-        data = self.gps.read_sensor_values()
-        actual_pos = self.gps.convert_to_cart_coord(data)
         print('gps : ', actual_pos[0, 0], actual_pos[1, 0])
         return np.arctan2(target_point[1, 0]-actual_pos[1, 0], target_point[0, 0]-actual_pos[0, 0])
 
     def back_to_home(self):
         """Bring back the DDBoat home"""
-        home = np.array([[Boat.lx_home], [Boat.ly_home]])
+        home = np.array([[self.x_home], [self.y_home]])
         heading = self.compute_heading(home)
         self.follow_heading(heading, 100, self.reach_point, home)
 

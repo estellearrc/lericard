@@ -3,6 +3,7 @@ import fsm
 import numpy as np
 import sys
 import Boat
+import Logs
 from GPS import convert_longlat_to_rad
 
 
@@ -46,6 +47,9 @@ def doMainMenu():
 
 
 def doTriangle():
+    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading',
+                     'heading_obj', 'pos_x', 'pos_y')
+
     global remaining_points
     print("Points to follow : ")
     # x_1 = 48.199482
@@ -57,11 +61,11 @@ def doTriangle():
     x_3 = 48.200187
     y_3 = -3.015764
     x_1, y_1 = convert_longlat_to_rad(x_1, y_1)
-    # x_1, y_1 = boat.gps.convert_rad_to_cart(x_1, y_1)
+    x_1, y_1 = boat.gps.convert_rad_to_cart(x_1, y_1)
     x_2, y_2 = convert_longlat_to_rad(x_2, y_2)
-    # x_2, y_2 = boat.gps.convert_rad_to_cart(x_2, y_2)
+    x_2, y_2 = boat.gps.convert_rad_to_cart(x_2, y_2)
     x_3, y_3 = convert_longlat_to_rad(x_3, y_3)
-    # x_3, y_3 = boat.gps.convert_rad_to_cart(x_3, y_3)
+    x_3, y_3 = boat.gps.convert_rad_to_cart(x_3, y_3)
     print("A : x=", x_1, " y=", y_1)
     print("B : x=", x_2, " y=", y_2)
     print("C : x=", x_3, " y=", y_3)
@@ -75,13 +79,21 @@ def doTriangle():
         # Nav block
         heading = boat.compass.compute_heading(
             mag_field[0, 0], mag_field[1, 0])
+        logs.update('heading', heading)
         if boat.reach_point(target_point):
             x_target, y_target = remaining_points.pop(0)
             target_point = np.array([[x_target], [y_target]])
             print("Going to point x=", x_target, " y=", y_target)
 
         # Guide block
-        heading_obj = boat.compute_heading(target_point)
+        data = boat.gps.read_sensor_values()
+        t, actual_pos = boat.gps.convert_to_cart_coord(data)
+        logs.update('t', t)
+        logs.update('pos_x', actual_pos[0, 0])
+        logs.update('pos_y', actual_pos[1, 0])
+
+        heading_obj = boat.compute_heading(target_point, actual_pos)
+        logs.update('heading_obj', heading_obj)
         print("obj : ", heading_obj)
         print("heading : ", heading)
 
@@ -89,10 +101,14 @@ def doTriangle():
 
         # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        logs.update('u_L', u_L)
+        logs.update('u_R', u_R)
 
         # DDBoat command
         boat.motors.command(u_L, u_R)
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+
+        logs.write_data()
 
     print("End of the triangle ...")
     return "stop"
@@ -140,7 +156,7 @@ def doGoPointInTime():
 
     x_1 = 48.199482
     y_1 = -3.014891
-    target_point = boat.gps.convert_to_cart_coord(x_1, y_1)
+    t, target_point = boat.gps.convert_to_cart_coord(x_1, y_1)
     mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
     while boat.reach_point(target_point) == False:
@@ -179,7 +195,7 @@ if __name__ == "__main__":
     f.load_fsm_from_file("fsm_boat_cmd.txt")
     run = True
     while run:
-        #try:
+        # try:
         funct = f.run()
         if f.curState != f.endState:
             newEvent = funct()
@@ -190,7 +206,7 @@ if __name__ == "__main__":
         else:
             funct()
             run = False
-        #except:
+        # except:
          #   print("I'm coming home bitches!")
             # boat = Boat.Boat()
           #  boat.back_to_home()

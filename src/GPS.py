@@ -20,12 +20,6 @@ def convert_longlat_to_rad(lx, ly):
     return lx, ly
 
 
-# def convert_rad_to_cart(lx, ly):
-#     x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
-#     y_tilde = GPS.rho*(ly-GPS.ly0)
-#     return x_tilde, y_tilde
-
-
 class GPS:
     rho = 6371000  # earth radius in meters
     # precision de 1.9m au bout du ponton
@@ -43,19 +37,23 @@ class GPS:
         data = gpsdrv.read_gll(self.gps_com)
         # divide by 100 to be in degrees
         # ly = pi*(DD+mm.mm/60)/100
-        self.write_coordinates(data[4], data[0], data[2])
+        # self.write_coordinates(data[4], data[0], data[2])
         return data
 
     def destroy(self):
         gpsdrv.close(self.gps_com)
 
+    def convert_rad_to_cart(self, lx, ly):
+        x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
+        y_tilde = GPS.rho*(ly-GPS.ly0)
+        return x_tilde, y_tilde
+
     def convert_to_cart_coord(self, data):
         lx, ly = convert_DDmm_to_rad(data[0], data[2])
         t = data[4]
-        x_tilde = GPS.rho*cos(ly)*(lx-GPS.lx0)
-        y_tilde = GPS.rho*(ly-GPS.ly0)
+        x_tilde, y_tilde = self.convert_rad_to_cart(lx, ly)
         self.write_coordinates(t, x_tilde, y_tilde)
-        return np.array([[x_tilde], [y_tilde], [t]])
+        return t, np.array([[x_tilde], [y_tilde]])
 
     def write_coordinates(self, t, lon, lat):
         with open(GPS.file_name, "a") as f:
@@ -68,7 +66,7 @@ def test():
     while True:
         data = gps.read_sensor_values()
         print("[long, lat] = [{}, {}]".format(data[0], data[2]))
-        p = gps.convert_to_cart_coord(data)
+        t, p = gps.convert_to_cart_coord(data)
         print("[xtilde, ytilde] = [{}, {}]".format(p[0, 0], p[1, 0]))
         time.sleep(0.1)
 
