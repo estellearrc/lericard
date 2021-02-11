@@ -20,6 +20,15 @@ def convert_longlat_to_rad(lx, ly):
     return lx, ly
 
 
+def convert_deg_to_rad(theta):
+    rad = (theta*np.pi)/180
+    return (rad+np.pi) % (2*np.pi)-np.pi
+
+
+def convert_knot_to_meterpersec(speed):
+    return speed*0.514
+
+
 class GPS:
     rho = 6371000  # earth radius in meters
     # precision de 1.9m au bout du ponton

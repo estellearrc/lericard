@@ -15,7 +15,7 @@ def sawtooth(x):
 class Boat:
     Kp = 1
     lx_home, ly_home = convert_longlat_to_rad(48.199129, -3.014017)
-    coef_left_motor = 0.8
+    coef_left_motor = 1.4
 
     def __init__(self):
         # Compass calibration
@@ -42,40 +42,35 @@ class Boat:
         """Returns motors commands from an heading to follow"""
 
         # increase the range of the bearing angle
-        e = 0.1*(heading_obj - heading)
+        e = 0.35*(heading_obj - heading)
 
-        M = np.array([[Boat.coef_left_motor, -1], [Boat.coef_left_motor, 1]])
+        M = np.array([[1, -1], [1, 1]])
         b = np.array([[(sawtooth(e))], [1]])
 
         M_1 = np.linalg.pinv(M)  # resolution of the system
         u = M_1.dot(b)  # command motor array
 
-        u_left = v_obj*u[0, 0]
+        u_left = v_obj*Boat.coef_left_motor*u[0, 0]
         u_right = v_obj*u[1, 0]  # command right motor
-        print("e=", sawtooth(e))
-        print("u_left, u_right=", u_left, u_right)
+        print("e=", e)
         return u_left, u_right
 
-    def follow_line_potential(self, a, b, t, t0, p):
+    def follow_line_potential(self, a, b, p, phat, v0):
         """
         Return motos commands from a direction vector
         a: departure point
         b: target point
-        t: current time
-        t0: departure time
         p: boat postion array([[x],[y]])
+        phat: moving attractive point a + v0*(t-t0)
+        v0: vitesse du point atractif   
         """
         d = (b-a)/norm(b-a)
-        v0 = 100*d  # Arbitraire -> a adapter
         n = np.array([[-d[1, 0]], [d[0, 0]]])  # normal vector of the line ab
-        # moving attractive point
-        phat = a + v0*(t-t0)
         # vector field
-        w = -n @ n.T @ (p-a) + v0 + 0.1*(p-phat)
-        v_obj = norm(w)
-        theta_obj = np.arctan2(w[1, 0], w[0, 0])
-
-        return theta_obj, v_obj
+        w = -n @ n.T @ (p-a) + v0 + 0.1*(phat-p)
+        v_bar = norm(w)
+        theta_bar = np.arctan2(w[1, 0], w[0, 0])
+        return theta_bar, v_bar
 
     # def follow_line_heading(self, pointB, vmin, vmax):
 
