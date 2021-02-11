@@ -3,6 +3,7 @@ import fsm
 import numpy as np
 import sys
 import Boat
+import Logs
 from GPS import convert_longlat_to_rad
 
 
@@ -46,6 +47,8 @@ def doMainMenu():
 
 
 def doTriangle():
+    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading', 'heading_obj', 'pos_x', 'pos_y')
+
     global remaining_points
     print("Points to follow : ")
     # x_1 = 48.199482
@@ -73,27 +76,39 @@ def doTriangle():
 
     while len(remaining_points) > 0:
         # Nav block
-        heading = boat.compass.compute_heading(
-            mag_field[0, 0], mag_field[1, 0])
+        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        logs.update('heading', heading)
         if boat.reach_point(target_point):
             x_target, y_target = remaining_points.pop(0)
             target_point = np.array([[x_target], [y_target]])
             print("Going to point x=", x_target, " y=", y_target)
 
         # Guide block
-        heading_obj = boat.compute_heading(target_point)
+        data = boat.gps.read_sensor_values()
+        actual_pos = boat.gps.convert_to_cart_coord(data)[0:2]
+        t = boat.gps.convert_to_cart_coord(data)[2, 0]
+        logs.update('t', t)
+        logs.update('pos_x', actual_pos[0, 0])
+        logs.update('pos_y', actual_pos[1, 0])
+        
+        heading_obj = boat.compute_heading(target_point, actual_pos)
+        logs.update('heading_obj', heading_obj)
         print("obj : ", heading_obj)
         print("heading : ", heading)
 
-        v_obj = 50
+        v_obj = 40
 
         # Control block
         u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        logs.update('u_L', u_L)
+        logs.update('u_R', u_R)
 
         # DDBoat command
         boat.motors.command(u_L, u_R)
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
+        logs.write_data()
+        
     print("End of the triangle ...")
     return "stop"
 
@@ -179,21 +194,21 @@ if __name__ == "__main__":
     f.load_fsm_from_file("fsm_boat_cmd.txt")
     run = True
     while run:
-        try:
-            funct = f.run()
-            if f.curState != f.endState:
-                newEvent = funct()
-                if newEvent is None:
-                    break
-                else:
-                    f.set_event(newEvent)
+        #try:
+        funct = f.run()
+        if f.curState != f.endState:
+            newEvent = funct()
+            if newEvent is None:
+                break
             else:
-                funct()
-                run = False
-        except:
-            print("I'm coming home bitches!")
+                f.set_event(newEvent)
+        else:
+            funct()
+            run = False
+        #except:
+         #   print("I'm coming home bitches!")
             # boat = Boat.Boat()
-            boat.back_to_home()
-            boat.stop()
+          #  boat.back_to_home()
+           # boat.stop()
 else:
     boat = Boat.Boat()
