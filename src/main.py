@@ -59,7 +59,7 @@ def doMainMenu():
 
 
 def doTriangle():
-    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading',
+    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading_gps',
                      'heading_obj', 'pos_x', 'pos_y')
 
     global remaining_points
@@ -93,10 +93,10 @@ def doTriangle():
         data = boat.gps.read_sensor_values()
         state_vector = boat.gps.convert_to_cart_coord(data)
         actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
-        heading = state_vector[4, 0]
+        heading_gps = state_vector[4, 0]
         t = state_vector[0, 0]
 
-        logs.update('heading', heading)
+        logs.update('heading_gps', heading_gps)
         if boat.reach_point(target_point):
             x_target, y_target = remaining_points.pop(0)
             target_point = np.array([[x_target], [y_target]])
@@ -109,13 +109,11 @@ def doTriangle():
 
         heading_obj = boat.compute_heading(target_point, actual_pos)
         logs.update('heading_obj', heading_obj)
-        print("obj : ", heading_obj)
-        print("heading : ", heading)
 
         v_obj = 40
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_obj, v_obj)
         logs.update('u_L', u_L)
         logs.update('u_R', u_R)
 
@@ -130,12 +128,12 @@ def doTriangle():
 
 
 def doGoNorth():
-    logs = Logs.Logs('goNorth', 'u_L', 'u_R', 'heading')
+    logs = Logs.Logs('goNorth', 'u_L', 'u_R', 'heading_gps')
     # mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
     data = boat.gps.read_sensor_values()
     state_vector = boat.gps.convert_to_cart_coord(data)
     actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
-    heading = state_vector[4, 0]
+    heading_gps = state_vector[4, 0]
     t = state_vector[0, 0]
 
     t0 = t
@@ -147,16 +145,16 @@ def doGoNorth():
         data = boat.gps.read_sensor_values()
         state_vector = boat.gps.convert_to_cart_coord(data)
         actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
-        heading = state_vector[4, 0]
+        heading_gps = state_vector[4, 0]
         t = state_vector[0, 0]
-        logs.update("heading", heading)
+        logs.update("heading_gps", heading_gps)
 
         # Guide block
         heading_obj = 0
         v_obj = 70
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_obj, v_obj)
         logs.update("u_L", u_L)
         logs.update("u_R", u_R)
 
@@ -181,7 +179,7 @@ def doGoPointInTime():
         print("Unknown command")
         return 'wait'
     logs = Logs.Logs('goPointInTime', 't', 'u_L', 'u_R', 'pos_x',
-                     'pos_y', 'heading', 'heading_obj', 'v', 'v_obj')
+                     'pos_y', 'heading_gps', 'heading_obj', 'v', 'v_obj')
 
     x_1 = 48.199482
     y_1 = -3.014891
@@ -190,7 +188,7 @@ def doGoPointInTime():
     p = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
     t = state_vector[0, 0]
     v = state_vector[3, 0]
-    heading = state_vector[4, 0]
+    heading_gps = state_vector[4, 0]
 
     a = p[:, :]
     t0 = t
@@ -199,9 +197,9 @@ def doGoPointInTime():
 
     while boat.reach_point(target_point) == False:
         # Nav block
-        heading = boat.compass.compute_heading(
+        heading_gps = boat.compass.compute_heading(
             mag_field[0, 0], mag_field[1, 0])
-        logs.update("heading", heading)
+        logs.update("heading_gps", heading_gps)
 
         # Guide block
         phat = a + v0*(t-t0)
@@ -211,7 +209,7 @@ def doGoPointInTime():
         logs.update("v_obj", v_obj)
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_obj, v_obj)
         logs.update("u_L", u_L)
         logs.update("u_R", u_R)
 
@@ -223,7 +221,7 @@ def doGoPointInTime():
         p = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
         t = state_vector[0, 0]
         v = state_vector[3, 0]
-        heading = state_vector[4, 0]
+        heading_gps = state_vector[4, 0]
 
         logs.update("t", t)
         logs.update("pos_x", p[0, 0])

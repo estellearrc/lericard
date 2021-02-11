@@ -38,11 +38,11 @@ class Boat:
         self.x_home, self.y_home = self.gps.convert_rad_to_cart(
             Boat.lx_home, Boat.ly_home)
 
-    def follow_heading(self, heading, heading_obj, v_obj):
+    def follow_heading(self, heading_gps, heading_compass, heading_obj, v_obj):
         """Returns motors commands from an heading to follow"""
 
         # increase the range of the bearing angle
-        e = 0.35*(heading_obj - heading)
+        e = 0.35*(heading_obj - heading_gps)
 
         M = np.array([[1, -1], [1, 1]])
         b = np.array([[Boat.Kp*sawtooth(e)], [1]])
