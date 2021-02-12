@@ -23,7 +23,33 @@ class Motors:
         self.encoders = Encoders()
         self.encoders.start()
 
-    def command(self, cmdl, cmdr):
+    def command(self, speedl, speedr):
+        """ compute command for left and right motor to reach speed0 in ticks per seconds"""
+        cmdl = speedl
+        cmdr = speedr
+
+        speed_L = self.encoders.speed_left
+        speed_R = self.encoders.speed_right
+
+        errL = speedl-speed_L
+        errR = speedr-speed_R
+        kp = 0.1
+        cmdl = cmdl + kp*errL
+        cmdr = cmdr + kp*errR
+        if cmdl > 255:
+            cmdl = 255
+        if cmdr > 255:
+            cmdr = 255
+        if cmdl < 0:
+            cmdl = 0
+        if cmdr < 0:
+            cmdr = 0
+
+        print("speed_L =", speed_L, "speed_R =",
+              speed_R, "cmd =", [int(cmdl), int(cmdr)])
+        self.set_pwm(cmdl, cmdr)
+
+    def set_pwm(self, cmdl, cmdr):
         ardudrv.send_arduino_cmd_motor(self.serial_arduino, cmdl, cmdr)
 
     def stop(self):
@@ -41,33 +67,9 @@ def test():
     #     time.sleep(1)
     #     motors.stop()
     speed0 = int(input("Speed ? --> "))
-
-    cmdl = 100
-    cmdr = 100
-
     t0 = time()
     while time() - t0 < 20:
-        speed_L = motors.encoders.speed_left
-        speed_R = motors.encoders.speed_right
-
-        errL = speed0-speed_L
-        errR = speed0-speed_R
-        kp = 0.1
-        cmdl = cmdl + kp*errL
-        cmdr = cmdr + kp*errR
-        if cmdl > 255:
-            cmdl = 255
-        if cmdr > 255:
-            cmdr = 255
-        if cmdl < 0:
-            cmdl = 0
-        if cmdr < 0:
-            cmdr = 0
-
-        motors.command(cmdl, cmdr)
-
-        print("speed_L =", speed_L, "speed_R =",
-              speed_R, "cmd =", [int(cmdl), int(cmdr)])
+        motors.command(speed0, speed0)
         sleep(0.3)
 
     motors.stop()

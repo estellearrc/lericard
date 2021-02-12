@@ -70,7 +70,7 @@ class GPS:
 def test():
     """ Try GPS """
     gps = GPS()
-    log = Logs.Logs("test_GPS", "t", "lat", "long", "speed", "heading")
+    log = Logs.Logs("test_GPS", "t", "x", "y", "speed", "heading")
     while True:
         data = gps.read_sensor_values()
         print("[lat, long] = [{}, {}]".format(data[2], data[4]))

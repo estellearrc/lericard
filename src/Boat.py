@@ -44,7 +44,7 @@ class Boat:
         # increase the range of the bearing angle
         e = 0.35*(heading_obj - heading_gps)
         print("e : ", abs(sawtooth(e)))
-        
+
         # while abs(sawtooth(e)) > 0.6:
         #    self.motors.stop()
         #    headings = []
@@ -73,6 +73,7 @@ class Boat:
 
         u_left = v_obj*u[0, 0]
         u_right = v_obj*u[1, 0]  # command right motor
+
         return u_left, u_right
 
     def follow_line_potential(self, a, b, p, phat, v0):

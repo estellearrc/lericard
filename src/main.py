@@ -219,8 +219,8 @@ def doGoPointInTime():
         # DDBoat command
         boat.motors.command(u_L, u_R)
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
-        data = gps.read_sensor_values()
-        state_vector = gps.convert_to_cart_coord(data)
+        data = boat.gps.read_sensor_values()
+        state_vector = boat.gps.convert_to_cart_coord(data)
         p = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
         t = state_vector[0, 0]
         v = state_vector[3, 0]
