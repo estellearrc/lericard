@@ -8,7 +8,7 @@ Time
 End
 ----- Transitions
 Idle Idle wait main.doWait
-Idle Init init main.doInitSpeed
+Init Init wait main.doInitSpeed
 Init Menu go main.doMainMenu
 Idle Menu go main.doMainMenu
 Menu Idle wait main.doWait
@@ -29,6 +29,6 @@ stop
 ---- Start State
 Init
 ---- Start Event
-go
+wait
 ---- End State
 End

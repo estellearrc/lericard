@@ -92,46 +92,6 @@ class Boat:
         theta_bar = np.arctan2(w[1, 0], w[0, 0])
         return theta_bar, v_bar
 
-    # def follow_line_heading(self, pointB, vmin, vmax):
-
-    #     pointA = self.gps.read_cart_coord()
-    #     # Starting point of the robot in the line following towards pointB
-    #     phi = np.arctan2(pointB[1, 0]-pointA[1, 0], pointB[0, 0]-pointA[0, 0])
-
-    #     while self.reach_point(pointB):
-    #         x = self.gps.read_cart_coord()
-    #         x = x.flatten()
-    #         mag_field = self.compass.read_sensor_values()
-    #         # boat actual heading
-    #         theta = self.compass.compute_heading(
-    #             mag_field[0, 0], mag_field[1, 0])
-    #         m = np.array([[x[0]], [x[1]]])  # position GPS (x,y)
-    #         # error to the following line
-    #         e_dist = det(
-    #             np.hstack(((pointB-pointA)/norm(pointA-pointB), m-pointA)))
-    #         # heading of the line to follow
-
-    #         if abs(e_dist) > self.gps.range:
-    #             if e_dist > 0:
-    #                 q = 1
-    #             else:
-    #                 q = -1
-    #             # q = sign(e_dist)
-
-    #         theta_bar = phi - np.arctan(e_dist/self.gps.range)
-
-    #         e_heading = sawtooth(theta - theta_bar)
-
-    #         v = ((abs(e_heading)*(vmax - vmin)) / np.pi) + vmin
-
-    #         if q > 0:
-    #             # Il faut peut etre intervertir
-    #             u_left = int(0.5*v*(1 + Boat.k*e_heading))
-    #             u_right = int(0.5*v*(1 - Boat.k*e_heading))
-    #         else:
-    #             u_right = int(0.5*v*(1 + Boat.k*e_heading))
-    #             u_left = int(0.5*v*(1 - Boat.k*e_heading))
-    #         self.motors.command(u_left, u_right)
 
     def reach_point(self, point):
         """Return false when a certain point has been reached

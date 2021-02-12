@@ -6,7 +6,7 @@ import Boat
 import Logs
 from GPS import convert_longlat_to_rad
 
-
+#points to reach
 remaining_points = []
 
 
@@ -17,10 +17,11 @@ def doWait():
 
 
 def doInitSpeed():
+    #Init boat going straight until the GPS is ready
     print("Going forward ...")
     boat.motors.command(100, 100)
 
-    while boat.gps.read_sensor_values()[1] != 'a':
+    while boat.gps.read_sensor_values()[1] != 'A':
         time.sleep(1)
     print('GPS ready ! ')
     time.sleep(4)
@@ -64,6 +65,7 @@ def doTriangle():
 
     global remaining_points
     print("Points to follow : ")
+    #Point to reach
     # x_1 = 48.199482
     # y_1 = -3.014891
     x_1 = 48.198971
@@ -82,6 +84,7 @@ def doTriangle():
     print("B : x=", x_2, " y=", y_2)
     print("C : x=", x_3, " y=", y_3)
     remaining_points = [(x_1, y_1), (x_2, y_2), (x_3, y_3), (x_1, y_1)]
+    #Deleting point when reached
     x_target, y_target = remaining_points.pop(0)
     target_point = np.array([[x_target], [y_target]])
     print("Going to point x=", x_target, " y=", y_target)
