@@ -85,11 +85,11 @@ def doTriangle():
     x_target, y_target = remaining_points.pop(0)
     target_point = np.array([[x_target], [y_target]])
     print("Going to point x=", x_target, " y=", y_target)
-    # mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+    mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
     while len(remaining_points) > 0:
         # Nav block
-        # heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        heading_compass = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
         data = boat.gps.read_sensor_values()
         state_vector = boat.gps.convert_to_cart_coord(data)
         actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
@@ -113,13 +113,13 @@ def doTriangle():
         v_obj = 100
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading_gps, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_compass, heading_obj, v_obj)
         logs.update('u_L', u_L)
         logs.update('u_R', u_R)
 
         # DDBoat command
         boat.motors.command(u_L, u_R)
-        # mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+        mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
         logs.write_data()
 
@@ -129,7 +129,7 @@ def doTriangle():
 
 def doGoNorth():
     logs = Logs.Logs('goNorth', 'u_L', 'u_R', 'heading_gps')
-    # mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+    mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
     data = boat.gps.read_sensor_values()
     state_vector = boat.gps.convert_to_cart_coord(data)
     actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
@@ -141,7 +141,7 @@ def doGoNorth():
         print(t)
         print(t-t0)
         # Nav block
-        # heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        heading_compass = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
         data = boat.gps.read_sensor_values()
         state_vector = boat.gps.convert_to_cart_coord(data)
         actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
@@ -154,14 +154,14 @@ def doGoNorth():
         v_obj = 100
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading_gps, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_compass, heading_obj, v_obj)
         logs.update("u_L", u_L)
         logs.update("u_R", u_R)
 
         # DDBoat command
         boat.motors.command(u_L, u_R)
         # boat.motors.command(40, 40)
-        # mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
+        mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
         logs.write_data()
 
@@ -209,7 +209,7 @@ def doGoPointInTime():
         logs.update("v_obj", v_obj)
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading_gps, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_compass, heading_obj, v_obj)
         logs.update("u_L", u_L)
         logs.update("u_R", u_R)
 
