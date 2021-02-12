@@ -27,7 +27,7 @@ north
 timedline
 stop
 ---- Start State
-Idle
+Init
 ---- Start Event
 go
 ---- End State

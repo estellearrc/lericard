@@ -38,30 +38,32 @@ class Boat:
         self.x_home, self.y_home = self.gps.convert_rad_to_cart(
             Boat.lx_home, Boat.ly_home)
 
-    def follow_heading(self, heading_gps, heading_compass, heading_obj, v_obj):
+    def follow_heading(self, heading_gps, heading_compasssss, heading_obj, v_obj):
         """Returns motors commands from an heading to follow"""
 
         # increase the range of the bearing angle
         e = 0.35*(heading_obj - heading_gps)
+        print("e : ", abs(sawtooth(e)))
         
-        while abs(sawtooth(e)) > 1:
-            self.motors.stop()
-            headings = []
-            for k in range(5):
-                mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
-                headings.append(boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0]))
-                time.sleep(0.2)
-            heading_compass = np.mean(np.array(headings))
-            e = 0.35*(heading_obj - heading_compass)
-            if e > 0:
-                self.motors.command(0, 150)
-                time.sleep(0.5)
-                self.motors.stop()
-            else:
-                self.motors.command(150, 0)
-                time.sleep(0.5)
-                self.motors.stop()
-            time.sleep(2)
+        # while abs(sawtooth(e)) > 0.6:
+        #    self.motors.stop()
+        #    headings = []
+        #    for k in range(5):
+        #        mag_field = self.compass.read_sensor_values().flatten().reshape((3, 1))
+        #        headings.append(self.compass.compute_heading(mag_field[0, 0], mag_field[1, 0]))
+        #        time.sleep(0.2)
+        #    heading_compass = np.mean(np.array(headings))
+        #    e = 0.35*(heading_obj - heading_compass)
+        #    print("e : ", abs(sawtooth(e)))
+        #    if e > 0:
+        #        self.motors.command(0, 150)
+        #        time.sleep(0.5)
+        #        self.motors.stop()
+        #    else:
+        #        self.motors.command(150, 0)
+        #        time.sleep(0.5)
+        #        self.motors.stop()
+        #    time.sleep(2)
 
         M = np.array([[Boat.coef_left_motor, -1], [Boat.coef_left_motor, 1]])
         b = np.array([[Boat.Kp*sawtooth(e)], [1]])
