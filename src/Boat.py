@@ -13,9 +13,9 @@ def sawtooth(x):
 
 
 class Boat:
-    Kp = 1
+    Kp = 0.6
     lx_home, ly_home = convert_longlat_to_rad(48.199129, -3.014017)
-    coef_left_motor = 1.4
+    coef_left_motor = 0.6
 
     def __init__(self):
         # Compass calibration
@@ -38,21 +38,42 @@ class Boat:
         self.x_home, self.y_home = self.gps.convert_rad_to_cart(
             Boat.lx_home, Boat.ly_home)
 
-    def follow_heading(self, heading, heading_obj, v_obj):
+    def follow_heading(self, heading_gps, heading_compasssss, heading_obj, v_obj):
         """Returns motors commands from an heading to follow"""
 
         # increase the range of the bearing angle
-        e = 0.35*(heading_obj - heading)
+        e = 0.35*(heading_obj - heading_gps)
+        print("e : ", abs(sawtooth(e)))
 
-        M = np.array([[1, -1], [1, 1]])
-        b = np.array([[(sawtooth(e))], [1]])
+        # while abs(sawtooth(e)) > 0.6:
+        #    self.motors.stop()
+        #    headings = []
+        #    for k in range(5):
+        #        mag_field = self.compass.read_sensor_values().flatten().reshape((3, 1))
+        #        headings.append(self.compass.compute_heading(mag_field[0, 0], mag_field[1, 0]))
+        #        time.sleep(0.2)
+        #    heading_compass = np.mean(np.array(headings))
+        #    e = 0.35*(heading_obj - heading_compass)
+        #    print("e : ", abs(sawtooth(e)))
+        #    if e > 0:
+        #        self.motors.command(0, 150)
+        #        time.sleep(0.5)
+        #        self.motors.stop()
+        #    else:
+        #        self.motors.command(150, 0)
+        #        time.sleep(0.5)
+        #        self.motors.stop()
+        #    time.sleep(2)
+
+        M = np.array([[Boat.coef_left_motor, -1], [Boat.coef_left_motor, 1]])
+        b = np.array([[Boat.Kp*sawtooth(e)], [1]])
 
         M_1 = np.linalg.pinv(M)  # resolution of the system
         u = M_1.dot(b)  # command motor array
 
-        u_left = v_obj*Boat.coef_left_motor*u[0, 0]
+        u_left = v_obj*u[0, 0]
         u_right = v_obj*u[1, 0]  # command right motor
-        print("e=", e)
+
         return u_left, u_right
 
     def follow_line_potential(self, a, b, p, phat, v0):
@@ -61,7 +82,7 @@ class Boat:
         a: departure point
         b: target point
         p: boat postion array([[x],[y]])
-        phat:moving attractive point a + v0*(t-t0)
+        phat: moving attractive point a + v0*(t-t0)
         v0: vitesse du point atractif   
         """
         d = (b-a)/norm(b-a)
@@ -72,52 +93,13 @@ class Boat:
         theta_bar = np.arctan2(w[1, 0], w[0, 0])
         return theta_bar, v_bar
 
-    # def follow_line_heading(self, pointB, vmin, vmax):
-
-    #     pointA = self.gps.read_cart_coord()
-    #     # Starting point of the robot in the line following towards pointB
-    #     phi = np.arctan2(pointB[1, 0]-pointA[1, 0], pointB[0, 0]-pointA[0, 0])
-
-    #     while self.reach_point(pointB):
-    #         x = self.gps.read_cart_coord()
-    #         x = x.flatten()
-    #         mag_field = self.compass.read_sensor_values()
-    #         # boat actual heading
-    #         theta = self.compass.compute_heading(
-    #             mag_field[0, 0], mag_field[1, 0])
-    #         m = np.array([[x[0]], [x[1]]])  # position GPS (x,y)
-    #         # error to the following line
-    #         e_dist = det(
-    #             np.hstack(((pointB-pointA)/norm(pointA-pointB), m-pointA)))
-    #         # heading of the line to follow
-
-    #         if abs(e_dist) > self.gps.range:
-    #             if e_dist > 0:
-    #                 q = 1
-    #             else:
-    #                 q = -1
-    #             # q = sign(e_dist)
-
-    #         theta_bar = phi - np.arctan(e_dist/self.gps.range)
-
-    #         e_heading = sawtooth(theta - theta_bar)
-
-    #         v = ((abs(e_heading)*(vmax - vmin)) / np.pi) + vmin
-
-    #         if q > 0:
-    #             # Il faut peut etre intervertir
-    #             u_left = int(0.5*v*(1 + Boat.k*e_heading))
-    #             u_right = int(0.5*v*(1 - Boat.k*e_heading))
-    #         else:
-    #             u_right = int(0.5*v*(1 + Boat.k*e_heading))
-    #             u_left = int(0.5*v*(1 - Boat.k*e_heading))
-    #         self.motors.command(u_left, u_right)
 
     def reach_point(self, point):
         """Return false when a certain point has been reached
         point is a 2d-array"""
         data = self.gps.read_sensor_values()
-        t, xy_tilde = self.gps.convert_to_cart_coord(data)
+        state_vector = self.gps.convert_to_cart_coord(data)
+        xy_tilde = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
         dist = norm(point-xy_tilde)
         print("dist pos to target point = ", dist)
         return dist <= 1

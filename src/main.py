@@ -6,7 +6,7 @@ import Boat
 import Logs
 from GPS import convert_longlat_to_rad
 
-
+#points to reach
 remaining_points = []
 
 
@@ -14,6 +14,19 @@ def doWait():
     print("Waiting 1 sec ...")
     time.sleep(1)
     return "go"
+
+
+def doInitSpeed():
+    #Init boat going straight until the GPS is ready
+    print("Going forward ...")
+    boat.motors.command(100, 100)
+
+    while boat.gps.read_sensor_values()[1] != 'A':
+        time.sleep(1)
+    print('GPS ready ! ')
+    time.sleep(4)
+    boat.motors.command(50, 50)
+    return 'go'
 
 
 def doMainMenu():
@@ -47,11 +60,12 @@ def doMainMenu():
 
 
 def doTriangle():
-    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading',
+    logs = Logs.Logs('triangle', 't', 'u_L', 'u_R', 'heading_gps',
                      'heading_obj', 'pos_x', 'pos_y')
 
     global remaining_points
     print("Points to follow : ")
+    #Point to reach
     # x_1 = 48.199482
     # y_1 = -3.014891
     x_1 = 48.198971
@@ -70,6 +84,7 @@ def doTriangle():
     print("B : x=", x_2, " y=", y_2)
     print("C : x=", x_3, " y=", y_3)
     remaining_points = [(x_1, y_1), (x_2, y_2), (x_3, y_3), (x_1, y_1)]
+    #Deleting point when reached
     x_target, y_target = remaining_points.pop(0)
     target_point = np.array([[x_target], [y_target]])
     print("Going to point x=", x_target, " y=", y_target)
@@ -77,30 +92,31 @@ def doTriangle():
 
     while len(remaining_points) > 0:
         # Nav block
-        heading = boat.compass.compute_heading(
-            mag_field[0, 0], mag_field[1, 0])
-        logs.update('heading', heading)
+        heading_compass = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        data = boat.gps.read_sensor_values()
+        state_vector = boat.gps.convert_to_cart_coord(data)
+        actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
+        heading_gps = state_vector[4, 0]
+        t = state_vector[0, 0]
+
+        logs.update('heading_gps', heading_gps)
         if boat.reach_point(target_point):
             x_target, y_target = remaining_points.pop(0)
             target_point = np.array([[x_target], [y_target]])
             print("Going to point x=", x_target, " y=", y_target)
 
         # Guide block
-        data = boat.gps.read_sensor_values()
-        t, actual_pos = boat.gps.convert_to_cart_coord(data)
         logs.update('t', t)
         logs.update('pos_x', actual_pos[0, 0])
         logs.update('pos_y', actual_pos[1, 0])
 
         heading_obj = boat.compute_heading(target_point, actual_pos)
         logs.update('heading_obj', heading_obj)
-        print("obj : ", heading_obj)
-        print("heading : ", heading)
 
-        v_obj = 40
+        v_obj = 100
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_compass, heading_obj, v_obj)
         logs.update('u_L', u_L)
         logs.update('u_R', u_R)
 
@@ -115,22 +131,33 @@ def doTriangle():
 
 
 def doGoNorth():
-    logs = Logs.Logs('goNorth', 'u_L', 'u_R', 'heading')
+    logs = Logs.Logs('goNorth', 'u_L', 'u_R', 'heading_gps')
     mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
-    t0 = time.time()
-    t = time.time()
-    while t - t0 < 1000:
+    data = boat.gps.read_sensor_values()
+    state_vector = boat.gps.convert_to_cart_coord(data)
+    actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
+    heading_gps = state_vector[4, 0]
+    t = state_vector[0, 0]
+
+    t0 = t
+    while t - t0 < 120:
+        print(t)
+        print(t-t0)
         # Nav block
-        heading = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
-        logs.update("heading", heading)
+        heading_compass = boat.compass.compute_heading(mag_field[0, 0], mag_field[1, 0])
+        data = boat.gps.read_sensor_values()
+        state_vector = boat.gps.convert_to_cart_coord(data)
+        actual_pos = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
+        heading_gps = state_vector[4, 0]
+        t = state_vector[0, 0]
+        logs.update("heading_gps", heading_gps)
 
         # Guide block
         heading_obj = 0
-        v_obj = 40
-        t = time.time()
+        v_obj = 100
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_compass, heading_obj, v_obj)
         logs.update("u_L", u_L)
         logs.update("u_R", u_R)
 
@@ -154,30 +181,56 @@ def doGoPointInTime():
     except:
         print("Unknown command")
         return 'wait'
+    logs = Logs.Logs('goPointInTime', 't', 'u_L', 'u_R', 'pos_x',
+                     'pos_y', 'heading_gps', 'heading_obj', 'v', 'v_obj')
 
     x_1 = 48.199482
     y_1 = -3.014891
-    t, target_point = boat.gps.convert_to_cart_coord(x_1, y_1)
+    data = boat.gps.read_sensor_values()
+    state_vector = boat.gps.convert_to_cart_coord(data)
+    p = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
+    t = state_vector[0, 0]
+    v = state_vector[3, 0]
+    heading_gps = state_vector[4, 0]
+
+    a = p[:, :]
+    t0 = t
+    v0 = 140  # A adapter
     mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
 
     while boat.reach_point(target_point) == False:
         # Nav block
-        heading = boat.compass.compute_heading(
+        heading_compass = boat.compass.compute_heading(
             mag_field[0, 0], mag_field[1, 0])
+        logs.update("heading_gps", heading_gps)
 
         # Guide block
-        t = time.time()
+        phat = a + v0*(t-t0)
         heading_obj, v_obj = boat.follow_line_potential(
-            a, target_point, t, t0, p)
+            a, target_point, p, phat, v0)
+        logs.update("heading_obj", heading_obj)
+        logs.update("v_obj", v_obj)
 
         # Control block
-        u_L, u_R = boat.follow_heading(heading, heading_obj, v_obj)
+        u_L, u_R = boat.follow_heading(heading_gps, heading_compass, heading_obj, v_obj)
+        logs.update("u_L", u_L)
+        logs.update("u_R", u_R)
 
         # DDBoat command
         boat.motors.command(u_L, u_R)
         mag_field = boat.compass.read_sensor_values().flatten().reshape((3, 1))
-        data = boat.GPS.read_sensor_values()
-        p = boat.GPS.convert_to_coordinates(data)
+        data = boat.gps.read_sensor_values()
+        state_vector = boat.gps.convert_to_cart_coord(data)
+        p = np.array([[state_vector[1, 0]], [state_vector[2, 0]]])
+        t = state_vector[0, 0]
+        v = state_vector[3, 0]
+        heading_gps = state_vector[4, 0]
+
+        logs.update("t", t)
+        logs.update("pos_x", p[0, 0])
+        logs.update("pos_y", p[1, 0])
+        logs.update("v", v)
+        logs.write_data()
 
     event = "stop"
     print("Arrived !")

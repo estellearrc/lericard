@@ -1,5 +1,6 @@
 ----- States
 Idle
+Init
 Menu
 Triangle
 North
@@ -7,6 +8,8 @@ Time
 End
 ----- Transitions
 Idle Idle wait main.doWait
+Init Init wait main.doInitSpeed
+Init Menu go main.doMainMenu
 Idle Menu go main.doMainMenu
 Menu Idle wait main.doWait
 Menu Triangle triangle main.doTriangle
@@ -18,13 +21,14 @@ Menu End stop main.doStop
 ----- Events
 wait
 go
+init
 triangle
 north
 timedline
 stop
 ---- Start State
-Idle
+Init
 ---- Start Event
-go
+wait
 ---- End State
 End
