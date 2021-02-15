@@ -1,13 +1,14 @@
 from roblib import *  # available at https://www.ensta-bretagne.fr/jaulin/roblib.py
 
 p1, p2 = 0.714, 0.1
+#p1, p2 = 2, 0.1
 
 
 # Point triangle
-a = array([[-3], [1]])
+a = array([[4], [5]])
 b = array([[9], [-5]])
-c = array([[4], [5]])
-triangle_points = [a, b, c]
+c = array([[-3], [1]])
+triangle_points = [a, b, c, a]
 
 t0 = 0
 dt = 0.01
@@ -43,32 +44,49 @@ def fsimu(X, u):
     return array([[x], [y], [v], [theta]])
 
 
-def reach_point(x, point):
+def reach_point(p, target):
     """Return false when a certain point has been reached
     point is a 2d-array"""
-    return norm(point - x[0:2, 0]) <= 3
-
-
-def follow_line_potential(n, p, phat, v0, i):
+    return norm(p - target) <= 1
+    
+    
+def follow_line_potential(a, b, p, phat, v0):
     """
     Return motos commands from a direction vector
     a: departure point
     b: target point
-    t: current time
-    t0: departure time
     p: boat postion array([[x],[y]])
-    i: index of triangle_points only for simulation
+    phat: moving attractive point a + v0*(t-t0)
+    v0: vitesse du point atractif   
     """
-    p = p[0:3, 0]  # Specifique simu
+    d = (b-a)/norm(b-a)
+    n = np.array([[-d[1, 0]], [d[0, 0]]])  # normal vector of the line ab
     # vector field
-    w = -n @ n.T @ (p - triangle_points[i]) + v0 + 1 * (phat - p)
-    # w =  v0 + 0.1*(phat-p)
+    w = -n @ n.T @ (p-a) + v0 + (phat-p)
     v_bar = norm(w)
-    theta_bar = arctan2(w[1, 0], w[0, 0])
+    theta_bar = np.arctan2(w[1, 0], w[0, 0])
     return theta_bar, v_bar
 
 
-X = array([[-3], [0], [0], [pi / 2]])  # State vector x,y,v,theta
+def control(heading, heading_obj, v_obj):
+    """Returns motors commands from an heading to follow"""
+
+    # increase the range of the bearing angle
+    e = 0.35*sawtooth(heading_obj - heading)
+    print("e = ", e)
+    M = np.array([[1, -1], [1, 1]])
+    b = np.array([[2*e], [1]])
+
+    M_1 = np.linalg.pinv(M)  # resolution of the system
+    u = M_1.dot(b)  # command motor array
+    
+    u_left = v_obj*u[0, 0]
+    u_right = v_obj*u[1, 0]  # command right motor
+
+    return u_left, u_right
+
+
+X = array([[0], [0], [0], [pi / 2]])  # State vector x,y,v,theta
 X1 = []
 X2 = []
 X3 = []
@@ -77,26 +95,29 @@ T = []
 t = t0
 i = 0  # indice departure point
 
-while t < 20:
+while i < 3:
+    p = array([[X[0, 0]], [X[1, 0]]])
+    v0 = 5 * (b-a)/norm(b-a)
+    
     # Guide bloc
-    d = (triangle_points[(i + 1) % 2] - triangle_points[i % 2]) / norm(
-        triangle_points[(i + 1) % 2] - triangle_points[i % 2]
-    )  # vecteur unitaire
-    # d = (b - a) / norm(b - a)  # vecteur unitaire
-    v0 = 10 * d  # Arbitraire -> a adapter
-    n = array([[-d[1, 0]], [d[0, 0]]])  # normal vector of the line ab
-    phat = triangle_points[i % 2] + v0 * (t - t0)  # moving attractive point t-t0
-    theta_bar, v_bar = follow_line_potential(n, X, phat, v0, i % 2)
-    print("thetabar: ", theta_bar)
-    # Commande prop
-    u = array(
-        [[3 * (v_bar - X[2, 0])], [10 * sawtooth(theta_bar - X[3, 0])]]
-    )  # velocity, theta
+    a = triangle_points[i]
+    b = triangle_points[i+1]
+    phat = a + (t - t0) * v0
+    
+    theta_bar, v_bar = follow_line_potential(a, b, p, phat, v0)
+    
+    
+    # Control bloc
+    u_left, u_right = control(X[3, 0], theta_bar, v_bar)
+    u = array([[u_left + u_right], [u_left - u_right]])
+    
+    
+    # DDBoat bloc
     # Euler
     dX = fsimu(X, u)
     X = X + dX * dt
     t = t + dt
-    print("theta: ", X[3, 0])
+    
     # Draw field
     X1.append(X[0])
     X2.append(X[1])
@@ -112,6 +133,7 @@ while t < 20:
     draw_disk(phat, 0.3, ax, "red")
     draw_tank(X[[0, 1, 3]], r=0.25, w=0.5)
 
-    if reach_point(X, triangle_points[(i + 1) % 2]):
+    if reach_point(p, triangle_points[i+1]):
         print("reach point !")
         i += 1
+        t0 = t
