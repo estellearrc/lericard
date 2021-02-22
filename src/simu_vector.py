@@ -119,7 +119,7 @@ t = t0
 i = 0  # indice departure point
 
 while i < 3:
-    cla()
+    clear(ax)
 
     p = array([[X[0, 0]], [X[1, 0]]])
     # v0 = 5 * (b - a) / norm(b - a)

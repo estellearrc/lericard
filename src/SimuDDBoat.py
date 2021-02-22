@@ -22,6 +22,8 @@ def fsimu(X,u):
     x2d = X[3]*sin(X[2])
     x3d = p1*(u[0] - u[1])
     x4d = p2*(u[0] + u[1]) - p3*X[3]*abs(X[3])
+    
+    print(u[0] + u[1])
 
     Y = np.array([x1d, x2d, x3d, x4d])
     return Y
